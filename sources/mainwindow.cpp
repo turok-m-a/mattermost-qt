@@ -72,7 +72,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	/*
 	 * Gets the LoginUser's image for the user icon
 	 */
-	backend.retrieveUserAvatar (currentUser.id);
+	//backend.retrieveUserAvatar (currentUser.id);
 
 	backend.retrieveTotalUsersCount ([this] (uint32_t) {
 		backend.retrieveAllUsers ();
