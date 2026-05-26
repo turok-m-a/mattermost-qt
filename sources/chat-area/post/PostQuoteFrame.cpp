@@ -60,7 +60,11 @@ PostQuoteFrame::PostQuoteFrame (const BackendPost& quotedPost, const Storage& st
 		}
 	} else {
 
-		ui->header->setText ("Originally posted by " + quotedPost.author->getDisplayName ());
+		if (quotedPost.author) {
+			ui->header->setText ("Originally posted by " + quotedPost.author->getDisplayName ());
+		}  else {
+			ui->header->setText ("Originally posted by deleted user");
+		}
 
 		QString attachmentText;
 		for (auto& file: quotedPost.files) {
