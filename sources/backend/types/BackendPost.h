@@ -75,7 +75,6 @@ public:
 	uint64_t					update_at;
 	uint64_t					edit_at;
 	uint64_t					delete_at;
-	bool						is_pinned;
 	QString						user_id;
 	QString						channel_id;
 #if 1
@@ -96,6 +95,9 @@ public:
 	std::unique_ptr<BackendPoll> poll;
 	const BackendUser*			author;
 	bool						isDeleted;
+	bool 						hidden;
+	bool						is_pinned;
+	bool						has_thread;
 };
 
 } /* namespace Mattermost */

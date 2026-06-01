@@ -47,6 +47,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 ,unreadMessagesCount (0)
 ,texteditDefaultHeight (70)
 ,gettingOlderPosts (false)
+,isThread(false)
+,areaIsFilled(false)
 {
 	//accept drag&drop attachments
 	setAcceptDrops(true);
@@ -98,7 +100,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 			qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
 		}
 
-		backend.retrieveChannelPosts (channel, 0, 25);
+		//for (int loadLimit = 40; !areaIsFilled && loadLimit > 0; loadLimit--)	//if all 1000 messages look like threaded, something is wrong, give up
+			
+			//TODO: we cant check if area is filled there (Qt signal is processed later somehow), need to solve this problem in a better way
+			backend.retrieveChannelPosts (channel, 0, 140); //retrieve more posts to avoid empty window, just in case if all posts are threaded
 	});
 
 	if (!user) {
@@ -144,9 +149,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 	connect (&channel, &BackendChannel::onPostEdited, [this] (BackendPost& post) {
 		PostWidget* postWidget = ui->listWidget->findPost (post.id);
-
 		if (postWidget) {
 			postWidget->setEdited (post.message);
+			if (post.has_thread && !postWidget->has_thread_button && !isThread)
+				postWidget->addThreadButton();
 			ui->listWidget->adjustSize();
 		}
 	});
@@ -205,6 +211,15 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		}
 	});
 
+	// dirty solution to non-scrollable window
+	connect (ui->loadOldPosts, &QPushButton::clicked, [this, &backend, &channel] {
+		if (!gettingOlderPosts) {
+			//do not spam requests
+			gettingOlderPosts = true;
+			backend.retrieveChannelOlderPosts (channel, 140);
+		}
+	});
+
 	connect (ui->usersButton, &QPushButton::clicked, [this] {
 		ViewChannelMembersListDialog* dialog = new ViewChannelMembersListDialog (this->backend, this->channel, this);
 		dialog->show ();
@@ -246,6 +261,136 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	ui->usersButton->hide();
 }
 
+ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
+:QWidget(nullptr)
+,ui(new Ui::ChatArea)
+,backend (backend)
+,channel (channel)
+,treeItem (nullptr)
+,pinnedPostsDockWidget (nullptr)
+,unreadMessagesCount (0)
+,texteditDefaultHeight (70)
+,gettingOlderPosts (false)
+,isThread(true)
+,parentPostId(rootId)
+{
+	//accept drag&drop attachments
+	setAcceptDrops(true);
+
+	ui->setupUi(this);
+
+	ui->outgoingPostCreator->init (backend, channel, *ui->outgoingPostPanel, *ui->listWidget, ui->footerLayout);
+	ui->listWidget->backend = &backend;
+
+	ui->titleLabel->setText (channel.display_name);
+	ui->statusLabel->setText (channel.getChannelDescription ());
+
+	ui->outgoingPostCreator->setRootId(rootId);
+
+	setTextEditWidgetHeight (texteditDefaultHeight);
+
+	ui->userAvatar->hide();
+	int insertPos = 0;
+	int postSeq = 0;
+	BackendPost* lastRootPost = nullptr;
+	QDate currentDate = QDateTime::currentDateTime().date();
+	int elapsedDaysSinceLastNewPost = INT32_MAX;
+	// thread messages are already retrieved, we just need to display them
+	for(auto& post: channel.posts ) {
+		if (post.root_id == rootId || post.id == rootId){
+
+			int elapsedDaysSinceThisNewPost = post.getCreationTime ().date().daysTo (currentDate);
+
+			/**
+			 * Add a day separator, if the next added post is from a day, different from the previous added post.
+			 * Day separator is always added for the first new post.
+			 */
+			if (elapsedDaysSinceThisNewPost != elapsedDaysSinceLastNewPost) {
+
+				elapsedDaysSinceLastNewPost = elapsedDaysSinceThisNewPost;
+				ui->listWidget->addDaySeparator (insertPos, elapsedDaysSinceThisNewPost);
+				++insertPos;
+			}
+
+			ui->listWidget->insertPost (insertPos, new PostWidget (backend, post, ui->listWidget, this, lastRootPost));
+			lastRootPost = post.rootPost;
+			++insertPos;
+			++postSeq;
+
+			if (post.id == lastReadPostId) {
+				ui->listWidget->addNewMessagesSeparator ();
+				++insertPos;
+			}
+		}
+
+	}
+
+	connect (&channel, &BackendChannel::onNewPosts, this,  &ChatArea::fillChannelPosts);
+
+
+	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
+
+	//let the post creator know that the last sent / edited post has appeared so that the input box can be cleared
+	connect (&channel, &BackendChannel::onNewPost, ui->outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
+	connect (&channel, &BackendChannel::onPostEdited, ui->outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
+
+	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
+
+	connect (&channel, &BackendChannel::onPostEdited, [this] (BackendPost& post) {
+		PostWidget* postWidget = ui->listWidget->findPost (post.id);
+		if (postWidget) {
+			postWidget->setEdited (post.message);
+			// if (post.has_thread && !postWidget->has_thread_button)
+			// 	postWidget->addThreadButton();
+			ui->listWidget->adjustSize();
+		}
+	});
+
+	connect (&channel, &BackendChannel::onPostReactionUpdated, [this] (BackendPost& post) {
+		PostWidget* postWidget = ui->listWidget->findPost (post.id);
+
+		if (postWidget) {
+			postWidget->updateReactions ();
+			ui->listWidget->adjustSize();
+		}
+	});
+
+	connect (&channel, &BackendChannel::onPostDeleted, [this] (const QString& postId) {
+		PostWidget* postWidget = ui->listWidget->findPost (postId);
+
+		if (postWidget) {
+			postWidget->markAsDeleted ();
+			ui->listWidget->adjustSize();
+		}
+	});
+
+	
+	//initiate editing of post, when edit is selected from the context menu
+	connect (ui->listWidget, &PostsListWidget::postEditInitiated, ui->outgoingPostCreator, &OutgoingPostCreator::postEditInitiated);
+
+	connect (ui->outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
+
+
+	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
+		texteditDefaultHeight = ui->splitter->sizes()[1];
+	});
+
+	connect (ui->outgoingPostCreator, &OutgoingPostCreator::heightChanged, [this] (int height) {
+
+		if (height < texteditDefaultHeight) {
+			height = texteditDefaultHeight;
+		}
+
+		setTextEditWidgetHeight (height);
+	});
+
+	//hide the pinned posts button by default. It will be shown if the channel has pinned posts
+	ui->pinnedPostsButton->hide();
+
+	//hide the users button. It will be shown when the channel members list is retrieved
+	ui->usersButton->hide();
+}
+
 ChatArea::~ChatArea()
 {
     delete ui;
@@ -257,7 +402,8 @@ void ChatArea::setUserAvatar (const BackendUser& user)
 	ui->userAvatar->setPixmap (QPixmap::fromImage(img));
 
 	if (channel.type == BackendChannel::directChannel) {
-		treeItem->setIcon (QIcon(QPixmap::fromImage(QImage::fromData(user.avatar))));
+		if (!isThread)
+			treeItem->setIcon (QIcon(QPixmap::fromImage(QImage::fromData(user.avatar))));
 	}
 }
 
@@ -321,6 +467,12 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 
 		for (auto& post: chunk.postsToAdd) {
 
+			if(post->hidden && !isThread)
+				continue;
+
+			if(post->root_id != root_id)
+				continue;
+
 			if (!chunk.previousPostId.isEmpty()) {
 				qDebug() << "\tAdd post " << post->id;
 			}
@@ -351,6 +503,9 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 		}
 	}
 
+	 if (postSeq > 20)
+	 	areaIsFilled = true;	// all loaded posts may be hidden thread posts, allow load on scroll
+
 	if (!gettingOlderPosts && !newPosts.postsToAdd.empty()) {
 		lastPostDate = newPosts.postsToAdd.back().postsToAdd.back()->getCreationTime ().date();
 	}
@@ -370,11 +525,18 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 		qDebug () << "Delete day separator";
 	}
 
-	setUnreadMessagesCount (unreadMessagesCount);
+	if (!isThread)
+		setUnreadMessagesCount (unreadMessagesCount);
 }
 
 void ChatArea::appendChannelPost (BackendPost& post)
 {
+	if(post.hidden && !isThread)
+		return;
+
+	if(post.root_id != root_id)	//filter posts from other threads. posts without thread have empty root_id, so the non-thread window
+		return;
+
 	QDate currentDate = QDateTime::currentDateTime().date();
 
 	if (lastPostDate.daysTo (currentDate) >= 1) {
@@ -383,7 +545,8 @@ void ChatArea::appendChannelPost (BackendPost& post)
 		lastPostDate = postTime.date();
 	}
 
-	bool chatAreaHasFocus = treeItem->isSelected() && isActiveWindow ();
+	//thread window is not in the tree
+	bool chatAreaHasFocus = isThread ? isActiveWindow () : treeItem->isSelected() && isActiveWindow ();
 
 	if (!chatAreaHasFocus) {
 		ui->listWidget->addNewMessagesSeparator ();
@@ -394,15 +557,18 @@ void ChatArea::appendChannelPost (BackendPost& post)
 	ui->listWidget->adjustSize();
 	ui->listWidget->scrollToBottom();
 
-	moveOnListTop ();
+	if(!isThread)
+		moveOnListTop ();
 
 	//do not add unread messages count if the Chat Area is on focus
 	if (chatAreaHasFocus) {
 		return;
 	}
 
-	++unreadMessagesCount;
-	setUnreadMessagesCount (unreadMessagesCount);
+	if (!isThread){
+		++unreadMessagesCount;
+		setUnreadMessagesCount (unreadMessagesCount);
+	}
 }
 
 void ChatArea::handleUserTyping (const BackendUser& user)

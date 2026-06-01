@@ -21,6 +21,7 @@
 
 #include <QWidget>
 #include <QDate>
+#include <QSet>
 #include <QTreeWidgetItem>
 
 #include "outgoing-post/OutgoingPostCreator.h"
@@ -32,6 +33,7 @@ class ChatArea;
 class QListWidgetItem;
 class QVBoxLayout;
 class QDockWidget;
+class Qset;
 
 namespace Mattermost {
 
@@ -48,6 +50,7 @@ class ChatArea: public QWidget {
 	Q_OBJECT
 public:
 	explicit ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent = nullptr);
+	explicit ChatArea (Backend& backend, BackendChannel& channel, QString rootId); //for thread window
 	~ChatArea();
 public:
 	Ui::ChatArea* getUi ();
@@ -91,6 +94,11 @@ private:
 	void moveOnListTop ();
 	void setUnreadMessagesCount (uint32_t count);
 	void setTextEditWidgetHeight (int height);
+
+	
+	ChatArea*					parentArea;
+	QString						parentPostId;
+
 public:
 	Ui::ChatArea 					*ui;
 	Backend& 						backend;
@@ -103,6 +111,11 @@ public:
 	int 							texteditDefaultHeight;
 	QDate							lastPostDate;
 	bool							gettingOlderPosts;
+	bool							areaIsFilled;
+	//thread chat window
+	bool							isThread;
+	QSet<ChatArea*> 					threadsAreas;
+	QString							root_id;
 };
 
 } /* namespace Mattermost */

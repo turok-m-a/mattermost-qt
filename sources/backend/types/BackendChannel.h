@@ -188,8 +188,11 @@ public:
     uint32_t						referenceCount;
 
     QMap<QString, BackendPost*>		postIdToPost;
+    QSet<QString>			missingRootPostIds;
     std::list<BackendPost>			posts;
     std::list<BackendPost>			pinnedPosts;
+
+    QVector<QPair<QString, QString>> rootIdAndPostList;
 };
 
 } /* namespace Mattermost */

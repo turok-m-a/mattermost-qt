@@ -51,6 +51,7 @@ public:
 	~OutgoingPostCreator();
 public:
 	void init (Backend& backend, BackendChannel& channel, OutgoingPostPanel& panel, PostsListWidget& postsListWidget, QBoxLayout* attachmentParent);
+	void setRootId(QString id);
 	void onDragEnterEvent (QDragEnterEvent* event);
 	void onDragMoveEvent (QDragMoveEvent* event);
 	void onDropEvent (QDropEvent* event);
@@ -95,6 +96,7 @@ private:
 	bool								isConnected;
 	QBoxLayout* 						attachmentParent;
 	std::vector<QMetaObject::Connection> signalConnections;
+	QString						root_id;
 };
 
 } /* namespace Mattermost */

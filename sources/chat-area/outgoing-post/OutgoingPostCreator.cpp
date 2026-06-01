@@ -331,7 +331,7 @@ void OutgoingPostCreator::sendPost ()
 		backend->addPoll (*channel, *outgoingPostData->pollData);
 	} else {
 		qDebug () << "Send post" << attachmentsLogStr;
-		backend->addPost (*channel, outgoingPostData->message, outgoingPostData->attachmentIds);
+		backend->addPost (*channel, outgoingPostData->message, outgoingPostData->attachmentIds, root_id);
 	}
 }
 
@@ -472,6 +472,10 @@ bool OutgoingPostCreator::isCreatingPost ()
 bool OutgoingPostCreator::isWaitingForPostServerResponse ()
 {
 	return outgoingPostData ? true : false;
+}
+
+void OutgoingPostCreator::setRootId(QString id) {
+	root_id = id;
 }
 
 } /* namespace Mattermost */

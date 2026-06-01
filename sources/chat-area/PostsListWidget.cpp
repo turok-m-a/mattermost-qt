@@ -318,6 +318,13 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 
 	QString selectedText = post->getSelectedText ();
 
+	myMenu.addAction ("Reply in thread", [this, post] {
+		if (!post->has_thread_button)
+			post->addThreadButton();
+
+		post->openThreadWindow();
+	});
+
 	if (!selectedText.isEmpty()) {
 		myMenu.addAction ("Copy selected text", [this, post, selectedText] {
 			qDebug() << "Copy selected text";

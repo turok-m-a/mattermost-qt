@@ -109,6 +109,30 @@ BackendPost* BackendChannel::addPost (const QJsonObject& postObject)
 
 	BackendPost* newPost = &posts.back ();
 	postIdToPost[newPost->id] = newPost;
+
+	QString rootId = postObject.value("root_id").toString();
+
+	if (!rootId.isEmpty()) {
+		//qDebug() << rootId << newPost->id;
+		rootIdAndPostList.push_back(QPair<QString,QString> (rootId, newPost->id));
+		newPost->hidden = true;
+		BackendPost* rootPost = findPostById(rootId);
+		if (rootPost) {
+			qDebug() << rootPost->id <<  rootPost->message;
+			rootPost->has_thread = true;
+			emit onPostEdited(*rootPost);
+		} else {
+			missingRootPostIds.insert(rootId);
+		}
+
+	}
+
+	if(missingRootPostIds.contains(newPost->id)) {
+		newPost->has_thread = true;
+		emit onPostEdited(*newPost);
+		missingRootPostIds.remove(newPost->id);
+	}
+
 	return newPost;
 }
 
@@ -125,8 +149,24 @@ void BackendChannel::addPost (const QJsonObject& postObject, std::list<BackendPo
 
 	QString rootId = postObject.value("root_id").toString();
 
-	if (!rootId.isEmpty()) {
-		rootIdAndPostList.push_back(QPair<QString,QString> (rootId, newPost->id));
+	 if (!rootId.isEmpty()) {
+		//qDebug() << rootId << newPost->id;
+	 	rootIdAndPostList.push_back(QPair<QString,QString> (rootId, newPost->id));
+	 	newPost->hidden = true;
+	 	BackendPost* rootPost = findPostById(rootId);
+	 	if (rootPost) {
+			qDebug() << rootPost->id <<  rootPost->message;
+	 		rootPost->has_thread = true;
+	 		emit onPostEdited(*rootPost);
+	 	} else {
+			missingRootPostIds.insert(rootId);
+		}
+	}
+
+	if(missingRootPostIds.contains(newPost->id)) {
+		newPost->has_thread = true;
+		emit onPostEdited(*newPost);
+		missingRootPostIds.remove(newPost->id);
 	}
 
 	if (!initialLoad) {
@@ -146,8 +186,6 @@ void BackendChannel::prependPosts (const QJsonArray& orderArray, const QJsonObje
 	 * A sequential group of new posts
 	 */
 	ChannelNewPostsChunk currentNewPostsChunk;
-
-	QVector<QPair<QString, QString>> rootIdAndPostList;
 
 	bool initialLoad = true;
 
@@ -176,8 +214,6 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 	 * A sequential group of new posts
 	 */
 	ChannelNewPostsChunk currentNewPostsChunk;
-
-	QVector<QPair<QString, QString>> rootIdAndPostList;
 
 	/* Position to add new posts (if any)
 	 * local posts are searched from newest to oldest
@@ -241,30 +277,6 @@ void BackendChannel::addPosts (const QJsonArray& orderArray, const QJsonObject& 
 			currentNewPostsChunk.previousPostId = currentLocalPost->id;
 		}
 		allNewPosts.addChunk (std::move (currentNewPostsChunk));
-	}
-
-	/**
-	 * Associate post with a root ID (if exists)
-	 */
-	for (auto& it: rootIdAndPostList) {
-		QString& rootID = it.first;
-		QString& postID = it.second;
-
-		BackendPost* rootPost = findPostById (rootID);
-		BackendPost* post = findPostById (postID);
-
-		if (!rootPost) {
-			LOG_DEBUG("root post " << rootID << " not found  (to be associated with post " << postID << ")");
-			continue;
-		}
-
-		if (!post) {
-			LOG_DEBUG("post " << postID << " not found (to be associated with root " << rootID << ")");
-			continue;
-		}
-
-		LOG_DEBUG("post " << postID << " add root " << rootID << ")");
-		post->rootPost = rootPost;
 	}
 
 	emit onNewPosts (allNewPosts);

@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QResizeEvent>
+#include <QPushButton>
 #include "backend/Backend.h"
 #include "backend/types/BackendPost.h"
 #include "backend/emoji/EmojiInfo.h"
@@ -39,6 +40,9 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 :QWidget(parent)
 ,post (post)
 ,ui(new Ui::PostWidget)
+,parentChatArea(chatArea)
+,has_thread_button(false)
+,threadButton(nullptr)
 {
 	ui->setupUi(this);
 	ui->authorName->setText (post.getDisplayAuthorName ());
@@ -104,6 +108,13 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		ui->verticalLayout->addWidget (poll.get(), 0, Qt::AlignLeft);
 	}
 
+	if (post.has_thread) {
+		QPushButton* openThread = new QPushButton("Open Thread", this);
+		connect (openThread, SIGNAL(clicked()), this, SLOT(openThreadWindow()));
+		has_thread_button = true;
+		ui->verticalLayout->addWidget(openThread);
+	}
+
 	connect (ui->message, &QLabel::linkHovered, [this] (const QString& link) {
 		qDebug() << "Link hovered: " << link;
 		hoveredLink = link;
@@ -149,6 +160,24 @@ void PostWidget::updateReactions ()
 
 		ui->verticalLayout->addWidget (reactions.get(), 0, Qt::AlignLeft);
 	}
+}
+
+void PostWidget::addThreadButton ()
+{
+	if (threadButton == nullptr)
+		threadButton = new QPushButton("Open Thread", this);
+	connect (threadButton, SIGNAL(clicked()), this, SLOT(openThreadWindow()));
+	has_thread_button = true;
+	ui->verticalLayout->addWidget(threadButton);
+}
+
+void PostWidget::openThreadWindow () {
+	//TODO check if area with such root id exists
+	ChatArea * area = new ChatArea(parentChatArea->backend, parentChatArea->channel, post.id);
+	area->root_id = post.id;
+	parentChatArea->threadsAreas.insert(area);
+	area->show();
+	qDebug() << post.id << post.has_thread << post.hidden << post.root_id;
 }
 
 void PostWidget::markAsDeleted ()

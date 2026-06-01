@@ -35,6 +35,7 @@ namespace Mattermost {
 BackendPost::BackendPost (const QJsonObject& jsonObject, const Storage& storage)
 :rootPost (nullptr)
 ,isDeleted (false)
+,has_thread(false)
 {
 	id = jsonObject.value("id").toString();
 	create_at = jsonObject.value("create_at").toVariant().toULongLong();
@@ -53,6 +54,7 @@ BackendPost::BackendPost (const QJsonObject& jsonObject, const Storage& storage)
 	props = jsonObject.value("props");
 	hashtags = jsonObject.value("hashtags").toString();
 	pending_post_id = jsonObject.value("pending_post_id").toString();
+	hidden = jsonObject.value("type").toString().startsWith("system_");
 
 	QJsonObject metadata = jsonObject.value("metadata").toObject();
 

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QPushButton>
 #include <memory>
 
 namespace Ui {
@@ -63,16 +63,26 @@ public:
 
     void clearMessageText ();
 
+    void addThreadButton();
+
     BackendPost&						post;
     QString								hoveredLink;
+    bool							has_thread_button;
+    QPushButton*						threadButton;
+
+public slots:
+    void openThreadWindow();
+
 signals:
 	void dimensionsChanged ();
+
 private:
     Ui::PostWidget*						ui;
     std::unique_ptr<PostQuoteFrame>		quoteFrame;
     std::unique_ptr<PostAttachmentList>	attachments;
     std::unique_ptr<PostPoll>			poll;
     std::unique_ptr<PostReactionList>	reactions;
+    ChatArea*				parentChatArea;
 };
 
 } /* namespace Mattermost */
