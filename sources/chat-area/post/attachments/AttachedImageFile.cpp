@@ -35,12 +35,12 @@ std::map <const QWidget*, FilePreview*> AttachedImageFile::currentlyOpenFiles;
 AttachedImageFile::AttachedImageFile (Backend& backend, const BackendFile& file, const QString& authorName, QWidget *parent)
 :QWidget(parent)
 ,ui(new Ui::AttachedImageFile)
+,file(file)
+,backend(backend)
 {
     ui->setupUi(this);
 
-    QImage img = QImage::fromData (file.mini_preview);
     ui->imageName->setText (file.name);
-    ui->imagePreview->setPixmap (QPixmap::fromImage(img));
 
     backend.retrieveFile (file.id, [&file, authorName, this] (const QByteArray& fileContents){
 
@@ -50,6 +50,7 @@ AttachedImageFile::AttachedImageFile (Backend& backend, const BackendFile& file,
 		int maxHeight = settings.value(DOWNLOAD_IMAGE_MAX_HEIGHT, 500).toInt();
 
 		QImage img = QImage::fromData (fileContents);
+		img.convertTo(QImage::Format_RGB555);
 		if (img.width() > maxWidth) {
 			img = img.scaledToWidth (maxWidth, Qt::SmoothTransformation);
 		}
@@ -62,8 +63,6 @@ AttachedImageFile::AttachedImageFile (Backend& backend, const BackendFile& file,
 		ui->imagePreview->adjustSize();
 
 		adjustSize();
-
-		filePreviewData = FilePreviewData {fileContents, file.name, authorName};
 
 		emit dimensionsChanged ();
 		//parentWidget()->adjustSize();
@@ -103,28 +102,29 @@ AttachedImageFile::~AttachedImageFile()
 void AttachedImageFile::mouseReleaseEvent (QMouseEvent*)
 {
 	qDebug() << "mouseRelease";
-	auto openFile = currentlyOpenFiles.find (this);
+	backend.retrieveFile (file.id, [this] (const QByteArray& fileContents) {
+				auto openFile = currentlyOpenFiles.find (this);
+				FilePreview * filePreview;
+				/*
+				 * If the file's Preview window is currently open, show it.
+	 			* Otherwise, open a new Preview eindow
+				 */
+				FilePreviewData filePreviewData{fileContents, "",  ""};
+				if (openFile == currentlyOpenFiles.end()) {
+				auto it = currentlyOpenFiles.emplace (this, new FilePreview (filePreviewData, nullptr));
+						filePreview = it.first->second;
+						filePreview->setAttribute (Qt::WA_DeleteOnClose);
+						filePreview->show ();
 
-	FilePreview* filePreview;
-
-	/*
-	 * If the file's Preview window is currently open, show it.
-	 * Otherwise, open a new Preview eindow
-	 */
-	if (openFile == currentlyOpenFiles.end()) {
-		auto it = currentlyOpenFiles.emplace (this, new FilePreview (filePreviewData, nullptr));
-		filePreview = it.first->second;
-		filePreview->setAttribute (Qt::WA_DeleteOnClose);
-		filePreview->show ();
-
-		connect (filePreview, &QDialog::rejected, [this] {
-				qDebug() << "Rejected";
-				currentlyOpenFiles.erase (this);
-		});
-	} else {
-		filePreview = openFile->second;
-		filePreview->raise ();
-	}
+						connect (filePreview, &QDialog::rejected, [this] {
+						qDebug() << "Rejected";
+						currentlyOpenFiles.erase (this);
+					});
+				} else {
+					filePreview = openFile->second;
+					filePreview->raise ();
+				}
+			});
 }
 
 } /* namespace Mattermost */

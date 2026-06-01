@@ -34,7 +34,6 @@ BackendFile::BackendFile (const QJsonObject& jsonObject)
 	mimeType = jsonObject.value ("mime_type").toString();
 	size = jsonObject.value ("size").toVariant().toULongLong ();
 	extension = jsonObject.value ("extension").toString();
-	mini_preview = QByteArray::fromBase64 (jsonObject.value ("mini_preview").toString().toUtf8());
 }
 
 BackendFile::~BackendFile () = default;

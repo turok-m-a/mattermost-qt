@@ -57,7 +57,7 @@ void PostAttachmentList::addFile (const BackendFile& file, const QString& author
 		fileWidget = new AttachedVideoFile (backend, file, this);
 	} else
 #endif
-	if (file.mini_preview.isEmpty()) {
+	if (!file.mimeType.startsWith("image") ) {
 		fileWidget = new AttachedBinaryFile (backend, file, this);
 	} else {
 		fileWidget = new AttachedImageFile (backend, file, authorName, this);

@@ -50,6 +50,7 @@ HTTPConnector::HTTPConnector ()
 {
 	//qnetworkManager takes ownership over the disk cache
 	qnetworkManager->setCache (createDiskCache ());
+	qnetworkManager->setAutoDeleteReplies(true);
 }
 
 HTTPConnector::~HTTPConnector () = default;

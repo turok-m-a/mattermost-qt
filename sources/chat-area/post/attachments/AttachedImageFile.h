@@ -49,6 +49,8 @@ private:
     Ui::AttachedImageFile*	ui;
     FilePreviewData			filePreviewData;
     static std::map <const QWidget*, FilePreview*>	currentlyOpenFiles;
+    const BackendFile&		file;
+    Backend&		backend;
 };
 
 } /* namespace Mattermost */
