@@ -19,7 +19,7 @@
 
 #include "ChatArea.h"
 
-#include <QDockWidget>
+#include <QDockWidget> 
 #include "channel-tree/ChannelItem.h"
 #include "ui_ChatArea.h"
 #include "post/PostWidget.h"
@@ -49,6 +49,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 ,gettingOlderPosts (false)
 ,isThread(false)
 ,areaIsFilled(false)
+,parentArea(NULL)
 {
 	//accept drag&drop attachments
 	setAcceptDrops(true);
@@ -103,7 +104,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		//for (int loadLimit = 40; !areaIsFilled && loadLimit > 0; loadLimit--)	//if all 1000 messages look like threaded, something is wrong, give up
 			
 			//TODO: we cant check if area is filled there (Qt signal is processed later somehow), need to solve this problem in a better way
-			backend.retrieveChannelPosts (channel, 0, 140); //retrieve more posts to avoid empty window, just in case if all posts are threaded
+			backend.retrieveChannelPosts (channel, 0, 100); //retrieve more posts to avoid empty window, just in case if all posts are threaded
 	});
 
 	if (!user) {
@@ -261,7 +262,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	ui->usersButton->hide();
 }
 
-ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
+ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId, ChatArea* parentArea)
 :QWidget(nullptr)
 ,ui(new Ui::ChatArea)
 ,backend (backend)
@@ -273,8 +274,10 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
 ,gettingOlderPosts (false)
 ,isThread(true)
 ,parentPostId(rootId)
+,parentArea(parentArea)
 {
 	//accept drag&drop attachments
+	setAttribute (Qt::WA_DeleteOnClose);
 	setAcceptDrops(true);
 
 	ui->setupUi(this);
@@ -332,11 +335,11 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
 
 	//let the post creator know that the last sent / edited post has appeared so that the input box can be cleared
 	connect (&channel, &BackendChannel::onNewPost, ui->outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
-	connect (&channel, &BackendChannel::onPostEdited, ui->outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
+	connect (&channel, &BackendChannel::onPostEdited,  ui->outgoingPostCreator, &OutgoingPostCreator::onPostReceived);
 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
 
-	connect (&channel, &BackendChannel::onPostEdited, [this] (BackendPost& post) {
+	connect (&channel, &BackendChannel::onPostEdited, this, [this] (BackendPost& post) {
 		PostWidget* postWidget = ui->listWidget->findPost (post.id);
 		if (postWidget) {
 			postWidget->setEdited (post.message);
@@ -346,7 +349,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
 		}
 	});
 
-	connect (&channel, &BackendChannel::onPostReactionUpdated, [this] (BackendPost& post) {
+	connect (&channel, &BackendChannel::onPostReactionUpdated, this, [this] (BackendPost& post) {
+
 		PostWidget* postWidget = ui->listWidget->findPost (post.id);
 
 		if (postWidget) {
@@ -355,7 +359,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
 		}
 	});
 
-	connect (&channel, &BackendChannel::onPostDeleted, [this] (const QString& postId) {
+	connect (&channel, &BackendChannel::onPostDeleted, this, [this] (const QString& postId) {
 		PostWidget* postWidget = ui->listWidget->findPost (postId);
 
 		if (postWidget) {
@@ -371,11 +375,11 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
 	connect (ui->outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
 
 
-	connect (ui->splitter, &QSplitter::splitterMoved, [this] {
+	connect (ui->splitter, &QSplitter::splitterMoved, this, [this] {
 		texteditDefaultHeight = ui->splitter->sizes()[1];
 	});
 
-	connect (ui->outgoingPostCreator, &OutgoingPostCreator::heightChanged, [this] (int height) {
+	connect (ui->outgoingPostCreator, &OutgoingPostCreator::heightChanged, this, [this] (int height) {
 
 		if (height < texteditDefaultHeight) {
 			height = texteditDefaultHeight;
@@ -393,7 +397,9 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId)
 
 ChatArea::~ChatArea()
 {
-    delete ui;
+	if (isThread)
+		parentArea->threadsAreas.remove(this);
+	delete ui;
 }
 
 void ChatArea::setUserAvatar (const BackendUser& user)

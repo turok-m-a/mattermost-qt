@@ -45,12 +45,13 @@ class BackendUser;
 class ChannelItem;
 class ChannelNewPosts;
 class OutgoingAttachmentList;
+class QChatArea;
 
 class ChatArea: public QWidget {
 	Q_OBJECT
 public:
 	explicit ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent = nullptr);
-	explicit ChatArea (Backend& backend, BackendChannel& channel, QString rootId); //for thread window
+	explicit ChatArea (Backend& backend, BackendChannel& channel, QString rootId, ChatArea* parentArea); //for thread window
 	~ChatArea();
 public:
 	Ui::ChatArea* getUi ();

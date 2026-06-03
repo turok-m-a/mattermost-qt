@@ -108,7 +108,7 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 		ui->verticalLayout->addWidget (poll.get(), 0, Qt::AlignLeft);
 	}
 
-	if (post.has_thread) {
+	if (post.has_thread && !parentChatArea->isThread) {
 		QPushButton* openThread = new QPushButton("Open Thread", this);
 		connect (openThread, SIGNAL(clicked()), this, SLOT(openThreadWindow()));
 		has_thread_button = true;
@@ -172,11 +172,30 @@ void PostWidget::addThreadButton ()
 }
 
 void PostWidget::openThreadWindow () {
-	//TODO check if area with such root id exists
-	ChatArea * area = new ChatArea(parentChatArea->backend, parentChatArea->channel, post.id);
-	area->root_id = post.id;
-	parentChatArea->threadsAreas.insert(area);
-	area->show();
+	ChatArea * area;
+	if (parentChatArea->threadsAreas.empty()){
+		area = new ChatArea(parentChatArea->backend, parentChatArea->channel, post.id, parentChatArea);
+		area->root_id = post.id;
+		parentChatArea->threadsAreas.insert(area);
+		area->show();	
+	} else {
+		auto it = parentChatArea->threadsAreas.begin(), end = parentChatArea->threadsAreas.end();
+		for (it; it != end; ++it){
+			if ((*it)->root_id == post.id) {
+				(*it)->activateWindow();
+				qDebug() << "exists";
+				break;
+			}
+		}
+		if (it == parentChatArea->threadsAreas.end()){
+			area = new ChatArea(parentChatArea->backend, parentChatArea->channel, post.id, parentChatArea);
+			area->root_id = post.id;
+			parentChatArea->threadsAreas.insert(area);
+			area->show();
+		}
+	}
+
+	//ChatArea * area = new ChatArea(parentChatArea->backend, parentChatArea->channel, post.id);
 	qDebug() << post.id << post.has_thread << post.hidden << post.root_id;
 }
 
