@@ -241,6 +241,7 @@ signals:
 
     void onWebSocketConnect ();
     void onWebSocketDisconnect ();
+    void loadingAvatars(unsigned counter, unsigned total);
 private:
     void loginSuccess (const QJsonDocument& data, const QNetworkReply& reply, std::function<void(const QString&)> callback);
 private:

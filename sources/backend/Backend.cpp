@@ -452,6 +452,16 @@ void Backend::retrieveAllUsers ()
 				emit onAllUsers ();
 				LOG_DEBUG ("Get Users: Done ");
 				obtainedPages = 0;
+				auto it = storage.users.begin(), end = storage.users.end();
+				unsigned int counter = 0;
+				unsigned int total = storage.users.size();
+				for (it; it != end; ++it){
+					counter++;
+					if (counter % 100 == 0)
+						emit loadingAvatars(counter,total);
+					retrieveUserAvatar (it->first, it->second.update_at);
+				}
+				emit loadingAvatars(total,total);
 			}
 		}));
 
