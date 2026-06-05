@@ -70,6 +70,7 @@ Backend::Backend(QObject *parent)
 ,isLoggedIn (false)
 ,autoLoginEnabledFlag (true)
 ,nonFilledTeams (0)
+,avatarsLoaded(0)
 {
 	connect (&webSocketConnector, &WebSocketConnector::onConnect, [this] (bool isReconnect) {
 
@@ -453,15 +454,10 @@ void Backend::retrieveAllUsers ()
 				LOG_DEBUG ("Get Users: Done ");
 				obtainedPages = 0;
 				auto it = storage.users.begin(), end = storage.users.end();
-				unsigned int counter = 0;
-				unsigned int total = storage.users.size();
+				totalUserCount = storage.users.size();
 				for (it; it != end; ++it){
-					counter++;
-					if (counter % 100 == 0)
-						emit loadingAvatars(counter,total);
 					retrieveUserAvatar (it->first, it->second.update_at);
 				}
-				emit loadingAvatars(total,total);
 			}
 		}));
 
@@ -475,7 +471,7 @@ void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 	//LOG_DEBUG ("getUserImage request");
 
 	httpConnector.get (request, HttpResponseCallback ([this, userID] (QVariant, QByteArray data) {
-
+		
 		//LOG_DEBUG ("getUserImage reply");
 
 		BackendUser* user = storage.getUserById (userID);
@@ -488,6 +484,12 @@ void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 		user->avatar = data;
 
 		emit user->onAvatarChanged();
+
+		avatarsLoaded++;
+		if (avatarsLoaded % 50 == 0)
+			emit loadingAvatars(avatarsLoaded,totalUserCount);
+		if (avatarsLoaded == totalUserCount)
+			emit loadingAvatars(totalUserCount,totalUserCount);
 	}));
 }
 

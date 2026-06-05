@@ -28,6 +28,7 @@
 #include <QObject>
 #include <QList>
 #include <QNetworkDiskCache>
+#include <QAtomicInteger>
 
 #include "backend/types/BackendLoginData.h"
 #include "backend/HTTPConnector.h"
@@ -260,6 +261,8 @@ private:
     bool							autoLoginEnabledFlag;
     uint32_t						nonFilledTeams;
     uint64_t						lastStartTime;
+    unsigned						totalUserCount;
+    QAtomicInteger<unsigned>				avatarsLoaded;
 };
 
 } /* namespace Mattermost */
