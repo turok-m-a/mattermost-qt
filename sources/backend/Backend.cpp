@@ -412,7 +412,7 @@ void Backend::retrieveAllUsers ()
 	static uint32_t obtainedPages;
 
 	for (uint32_t page = 0; page < totalPages; ++page) {
-		NetworkRequest request ("users?per_page=" + QString::number(usersPerPage) + "&page=" + QString::number(page));
+		NetworkRequest request ("users?per_page=" + QString::number(usersPerPage) + "&active=true&page=" + QString::number(page));
 
 		httpConnector.get (request, HttpResponseCallback ([this, page, totalPages] (const QJsonDocument& doc) {
 
