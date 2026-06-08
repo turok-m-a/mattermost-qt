@@ -467,6 +467,7 @@ void Backend::retrieveAllUsers ()
 void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 {
 	NetworkRequest request ("users/" + userID + "/image", true);
+	request.setPriority(QNetworkRequest::LowPriority);
 
 	//LOG_DEBUG ("getUserImage request");
 
