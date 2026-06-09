@@ -29,7 +29,7 @@ fork from abandoned [mattermost-qt](https://github.com/turok-m-a/mattermost-qt/t
 * Fix reconnect and chat history synchonization
 * Hidden/archived chats - do not receive notifications from them, do not load and receive messages until selected from list.
 * "TODO answer list" - mark messages as unread (or some other way), and put them on special list.
-* Find a better way to handle thread widnows.
+* ~~Find a better way to handle thread widnows.~~ done
 * Make main window fully resizable, auto/manual option to hide chat list.
 * Settings for notifications. At least option to notify only on PM and username mentioned.
 * Fix new reactions not working, support for custom reactions. At least - display :reaction name: on button if icon cannot be displayed.
@@ -60,10 +60,12 @@ The application is developed and tested on Linux Mint. Windows support is not te
 ## Build instructions (Linux)
 It is recommended to build in a separate directory:
 
+```
 mkdir build
 cd build
 cmake ..
 make -j8
+```
 
 ## How to build on Windows
 
