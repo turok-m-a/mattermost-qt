@@ -56,7 +56,6 @@ inline MattermostApplication::MattermostApplication (int& argc, char *argv[])
 	trayIcon->setToolTip(tr("Mattermost Qt"));
 	trayIcon->setContextMenu (trayIconMenu.get());
 	trayIcon->show();
-	connect (this, &QGuiApplication::lastWindowClosed, this, &MattermostApplication::reopen);
 
 	connect (trayIcon.get(), &QSystemTrayIcon::messageClicked, this, &MattermostApplication::showWindow);
 
@@ -68,6 +67,7 @@ inline MattermostApplication::MattermostApplication (int& argc, char *argv[])
 
 	trayIconMenu->addAction ("Open Mattermost", this, &MattermostApplication::showWindow);
 	trayIconMenu->addAction ("Quit", qApp, &QApplication::quit);
+	qApp->setQuitOnLastWindowClosed(false);
 }
 
 void MattermostApplication::openLoginWindow ()
@@ -103,18 +103,6 @@ inline void MattermostApplication::toggleShowWindow ()
 	} else {
 		currentWindow->show ();
 	}
-}
-
-inline void MattermostApplication::reopen ()
-{
-	qDebug () << "lastWindowClosed";
-
-	if (!mainWindow) {
-		return;
-	}
-
-	mainWindow.reset(nullptr);
-	openLoginWindow ();
 }
 
 } /* namespace Mattermost */
