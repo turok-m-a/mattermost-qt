@@ -43,10 +43,10 @@ public:
 
 	void reset ();
 
-	void get (const QNetworkRequest &request, HttpResponseCallback responseHandler);
+	void get (QNetworkRequest &request, HttpResponseCallback responseHandler);
 	void post (QNetworkRequest &request, const QByteArrayCreator &data, HttpResponseCallback responseHandler);
-	void put (const QNetworkRequest &request, const QByteArrayCreator &data, HttpResponseCallback responseHandler);
-	void del (const QNetworkRequest &request);
+	void put (QNetworkRequest &request, const QByteArrayCreator &data, HttpResponseCallback responseHandler);
+	void del (QNetworkRequest &request);
 
 signals:
 	void onNetworkError (uint32_t errorNumber, const QString& errorText);

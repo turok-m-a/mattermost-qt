@@ -466,9 +466,11 @@ void Backend::retrieveAllUsers ()
 
 void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 {
-	NetworkRequest request ("users/" + userID + "/image", true);
+	NetworkRequest request ("users/" + userID + "/image");
 	request.setPriority(QNetworkRequest::LowPriority);
 
+ 	request.setAttribute(QNetworkRequest::BackgroundRequestAttribute, true);
+	request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
 	//LOG_DEBUG ("getUserImage request");
 
 	httpConnector.get (request, HttpResponseCallback ([this, userID] (QVariant, QByteArray data) {
@@ -496,7 +498,7 @@ void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 
 void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray&)> callback)
 {
-	NetworkRequest request ("files/" + fileID, true);
+	NetworkRequest request ("files/" + fileID);
 
 	QIODevice* cachedFile = attachmentsCache.data (fileID);
 

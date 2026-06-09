@@ -62,8 +62,10 @@ void HTTPConnector::reset ()
 	qnetworkManager->setCache (createDiskCache ());
 }
 
-void HTTPConnector::get (const QNetworkRequest& request, HttpResponseCallback responseHandler)
+void HTTPConnector::get (QNetworkRequest& request, HttpResponseCallback responseHandler)
 {
+	if (request.priority() != QNetworkRequest::LowPriority)
+		request.setPriority(QNetworkRequest::HighPriority);
 	QNetworkReply* reply = qnetworkManager->get (request);
 	setProcessReply (reply, std::move (responseHandler));
 }
@@ -74,19 +76,25 @@ void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& dat
 		request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 	}
 
+	if (request.priority() != QNetworkRequest::LowPriority)
+		request.setPriority(QNetworkRequest::HighPriority);
 	//LOG_DEBUG ("POST " << request.url() << " " << request.rawHeaderList() << data);
 	QNetworkReply* reply = qnetworkManager->post (request, data);
 	setProcessReply (reply, std::move (responseHandler));
 }
 
-void HTTPConnector::put (const QNetworkRequest& request, const QByteArrayCreator& data, HttpResponseCallback responseHandler)
+void HTTPConnector::put (QNetworkRequest& request, const QByteArrayCreator& data, HttpResponseCallback responseHandler)
 {
+	if (request.priority() != QNetworkRequest::LowPriority)
+		request.setPriority(QNetworkRequest::HighPriority);
 	QNetworkReply* reply = qnetworkManager->put (request, data);
 	setProcessReply (reply, std::move (responseHandler));
 }
 
-void HTTPConnector::del (const QNetworkRequest& request)
+void HTTPConnector::del (QNetworkRequest& request)
 {
+	if (request.priority() != QNetworkRequest::LowPriority)
+		request.setPriority(QNetworkRequest::HighPriority);
 	QNetworkReply* reply = qnetworkManager->deleteResource (request);
 	setProcessReply (reply, [](QVariant, QByteArray, const QNetworkReply&){});
 }
