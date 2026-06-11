@@ -275,7 +275,7 @@ void OutgoingPostCreator::sendPostButtonAction ()
  */
 void OutgoingPostCreator::startSendPostSequence ()
 {
-	sendRetryTimer.start (10000);
+	sendRetryTimer.start (25000);
 	ui->textEdit->setReadOnly (true);
 	updateSendButtonState ();
 	prepareAndSendPost ();
