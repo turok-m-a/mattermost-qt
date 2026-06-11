@@ -177,7 +177,7 @@ static bool printEvent (const QString& name)
 			name == "reaction_added" 	||
 			name == "status_change" 	||
 			name == "posted" 			||
-			name == "typing" 			||
+			//name == "typing" 			||
 			name == "reaction_removed"	||
 			name == "user_removed"		||
 			name == "user_updated"		||
@@ -210,11 +210,14 @@ void WebSocketConnector::onNewPacket (const QString& string)
 
 
 	if (it == eventHandlers.end()) {
-		QString jsonString = doc.toJson(QJsonDocument::Indented);
-		std::cout << jsonString.toStdString();
-
-		LOG_DEBUG ("Unhandled WebSocket event '" << event.toString() << "'\n");
-		qDebug() << "========" << '\n';
+		//sometimes MM instance keeps spamming custom_profile_attributes_values_updated
+		//custom profile attbibutes will not be supported in the near future
+		if (event.toString() != "custom_profile_attributes_values_updated"){
+			LOG_DEBUG ("Unhandled WebSocket event '" << event.toString() << "'\n");
+			QString jsonString = doc.toJson(QJsonDocument::Indented);
+			std::cout << jsonString.toStdString();
+			qDebug() << "========" << '\n';
+		}
 		return;
 	}
 
