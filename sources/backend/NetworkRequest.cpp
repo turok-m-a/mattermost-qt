@@ -43,7 +43,7 @@ NetworkRequest::NetworkRequest (const QString& urlRoot, const QString& url, bool
 {
 	setUrl (httpHost + urlRoot + url);
 
-	setRawHeader("User-Agent", "QT");
+	setRawHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:149.0) Gecko/20100101 Firefox/149.0");
 	setRawHeader("X-Requested-With", "XMLHttpRequest");
 
 	if (!httpToken.isEmpty()) {
