@@ -30,5 +30,7 @@ static constexpr const char* DOWNLOAD_LOCATION = "config/downloadLocation";
 static constexpr const char* DOWNLOAD_ASK = "config/downloadAsk";
 static constexpr const char* DOWNLOAD_IMAGE_MAX_WIDTH = "config/imageMaxWidth";
 static constexpr const char* DOWNLOAD_IMAGE_MAX_HEIGHT = "config/imageMaxHeight";
+static constexpr const char* CACHE_SIZE_MB = "config/cacheSizeMB";
+#define CACHE_SIZE_MB_DEFAULT 1000
 
 

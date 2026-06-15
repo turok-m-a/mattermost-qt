@@ -32,8 +32,10 @@
 #include <QJsonObject>
 #include <QStandardPaths>
 #include <QNetworkReply>
+#include <QSettings>
 #include "QByteArrayCreator.h"
 #include "log.h"
+#include "Settings.h"
 
 namespace Mattermost {
 
@@ -41,7 +43,11 @@ static QNetworkDiskCache* createDiskCache ()
 {
 	QNetworkDiskCache* diskCache = new QNetworkDiskCache ();
 	diskCache->setCacheDirectory (QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
-	diskCache->setMaximumCacheSize (300 * 1024 * 1024);
+
+	QSettings settings;
+	unsigned cacheSizeMB = settings.value(CACHE_SIZE_MB, CACHE_SIZE_MB_DEFAULT).toUInt();
+
+	diskCache->setMaximumCacheSize (cacheSizeMB * 1024 * 1024);
 	return diskCache;
 }
 

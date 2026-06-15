@@ -43,6 +43,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) :
 	ui->askLocationCheckBox->setChecked (settings.value (DOWNLOAD_ASK, 0).toBool());
 	ui->imageMaxWidthValue->setText (settings.value (DOWNLOAD_IMAGE_MAX_WIDTH, 400).toString());
 	ui->imageMaxHeightValue->setText (settings.value (DOWNLOAD_IMAGE_MAX_HEIGHT, 400).toString());
+	ui->cacheSizeMBValue->setText (settings.value (CACHE_SIZE_MB, CACHE_SIZE_MB_DEFAULT).toString());
 
 	connect (ui->downloadLocationButton, &QPushButton::clicked, [this] {
 		QDir defaultDir (ui->downloadLocationValue->text());
@@ -66,6 +67,7 @@ void SettingsWindow::applyNewSettings ()
 	settings.setValue (DOWNLOAD_ASK, ui->askLocationCheckBox->text());
 	settings.setValue (DOWNLOAD_IMAGE_MAX_WIDTH, ui->imageMaxWidthValue->text());
 	settings.setValue (DOWNLOAD_IMAGE_MAX_HEIGHT, ui->imageMaxHeightValue->text());
+	settings.setValue (CACHE_SIZE_MB, ui->cacheSizeMBValue->text());
 	settings.sync ();
 }
 
