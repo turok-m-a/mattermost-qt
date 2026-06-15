@@ -34,12 +34,13 @@ fork from abandoned [mattermost-qt](https://github.com/turok-m-a/mattermost-qt/t
 * Settings for notifications. At least option to notify only on PM and username mentioned.
 * Fix new reactions not working, support for custom reactions. At least - display :reaction name: on button if icon cannot be displayed.
 * Load avatars only for users that are members of channel you are connected to, plus PM list users.
-* Load avatars only for posts that are currently displayed. If not possible, implement background avatar loading, so user does not need to wait for too long on first client launch.
+* ~~Load avatars only for posts that are currently displayed. If not possible, implement background avatar loading, so user does not need to wait for too long on first client launch.~~ background loading implemented, increasing cache size (its adjustable now) allows to avoid this process. avatars for deleted users are not loaded now (as well as user name and other info).
 * Try to optimize RAM usage even more (just as a challenge)
 # What is planned to be implemented (at some distant future)
 * pinning posts to a channel and displaying pinned posts
 * adding additional settings... I want this application to be fully customizable
 
+* problem: This app works in "load all users info first" paradigm, but due to API limitations, we can't easily load all (including deleted ones!) users info. "get users" allows to request info about hundreds of users at once, so we can get them all and proceed further, but we need to know total count of them, to send requests asyncronously. API allows to request only count of non-deleted users (unless you have admin rights). only (maybe not) way to bypass this is to send "get users" requests and process them sequentialy, until we get empty response. "get known users" allows to get IDs of all users that have some relation to logged-in user. however, we still need to request user info for each ID, one request per ID, which is slow, if you are a member of channel with thouthands of users.
 # What does not work, not planned to be implemented
 * notifications when someone is typing and sending a notification when you are typing
 * voice calls
