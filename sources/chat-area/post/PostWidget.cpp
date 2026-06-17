@@ -313,8 +313,12 @@ QString PostWidget::formatMessageText (const QString& str)
 		}
 
 		size_t size = linkEnd - linkStart;
-
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 		ret.insert (linkEnd, "\">" + QStringRef (&ret, linkStart,  size) + "</a>");
+#else
+		QStringView strView(ret);
+		ret.insert (linkEnd, "\">" + strView.sliced(linkStart,  size).toString() + "</a>");
+#endif
 		ret.insert (linkStart, "<a href=\"");
 
 		linkEnd += size + 15;

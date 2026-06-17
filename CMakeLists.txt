@@ -17,6 +17,16 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -ggdb")
 
 set(APPID "mattermost-qt")
 
+option(QT_6 "Use Qt6" ON)
+
+find_package(Qt6 COMPONENTS Core)
+if(Qt6_FOUND AND QT_6)
+    message(WARNING "mattermost-qt built with Qt6 is buggy, disable with -DQT_6=OFF if Qt5 is available on your system")
+    set(QT_VERSION_MAJOR 6)
+else()
+    set(QT_VERSION_MAJOR 5)
+endif()
+
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.
 # They need to be set before the find_package(Qt5 ...) call.
@@ -32,16 +42,16 @@ set(APPID "mattermost-qt")
 
 option(BUILD_MULTIMEDIA "Enable Multimedia" OFF)
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Qt5 COMPONENTS Network REQUIRED)
-find_package(Qt5 COMPONENTS WebSockets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS WebSockets REQUIRED)
 
 if(BUILD_MULTIMEDIA)
-	find_package(Qt5 COMPONENTS Multimedia REQUIRED)
-	find_package(Qt5 COMPONENTS MultimediaWidgets REQUIRED)
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Multimedia REQUIRED)
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS MultimediaWidgets REQUIRED)
 endif()
 
-include_directories(${Qt5Network_INCLUDE_DIRS} sources/)
+include_directories(${Qt${QT_VERSION_MAJOR}Network_INCLUDE_DIRS} sources/)
 
 if(ANDROID)
   add_library(mattermost-client SHARED
@@ -71,7 +81,7 @@ endif()
 
 add_subdirectory (tools)
 
-target_link_libraries (${APPID} PRIVATE Qt5::Widgets Qt5::Network Qt5::WebSockets)
+target_link_libraries (${APPID} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::WebSockets)
 
 if(UNIX)
 	include(GNUInstallDirs)
@@ -96,5 +106,5 @@ if(UNIX)
 endif()
 
 if(BUILD_MULTIMEDIA)
-	target_link_libraries(qmattermost PRIVATE Qt5::Multimedia Qt5::MultimediaWidgets)
+	target_link_libraries(qmattermost PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
 endif()

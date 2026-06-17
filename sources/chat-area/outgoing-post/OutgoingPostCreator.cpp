@@ -174,23 +174,27 @@ void OutgoingPostCreator::postEditInitiated (BackendPost& post)
 
 static NewPollDialog* newPollDialog;
 
-static QStringRef getStringInsideQuotes (const QString& str, int& nextPos)
+static QString getStringInsideQuotes (const QString& str, int& nextPos)
 {
 	int firstQuoute = str.indexOf('"', nextPos);
 
 	if (firstQuoute == -1) {
-		return QStringRef();
+		return QString();
 	}
 
 	int lastQuote = str.indexOf('"', firstQuoute + 1);
 
 	if (lastQuote == -1) {
-		return QStringRef();
+		return QString();
 	}
 
 	nextPos = lastQuote + 1;
-
-	return QStringRef (&str, firstQuoute + 1, lastQuote - firstQuoute - 1);
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+	return QStringRef (&str, firstQuoute + 1, lastQuote - firstQuoute - 1).toString();
+#else
+	QStringView v(str);
+	return v.sliced(firstQuoute + 1, lastQuote - firstQuoute - 1).toString();
+#endif
 }
 
 void OutgoingPostCreator::sendPostButtonAction ()
@@ -214,18 +218,18 @@ void OutgoingPostCreator::sendPostButtonAction ()
 		BackendNewPollData initialPollData;
 
 		int startPos = 6;
-		QStringRef str (getStringInsideQuotes (message, startPos));
+		QString str = getStringInsideQuotes (message, startPos);
 		qDebug () << "got " << str << " pos " << startPos;
 
 		if (!str.isEmpty()) {
-			initialPollData.question = str.toString();
+			initialPollData.question = str;
 		}
 
 		str = getStringInsideQuotes (message, startPos);
 		qDebug () << "got " << str << " pos " << startPos;
 
 		while (!str.isEmpty()) {
-			initialPollData.options.push_back (str.toString());
+			initialPollData.options.push_back (str);
 			str = getStringInsideQuotes (message, startPos);
 			qDebug () << "got " << str << " pos " << startPos;
 		}
