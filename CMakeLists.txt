@@ -10,20 +10,20 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -ggdb")
 
 set(APPID "mattermost-qt")
 
-option(QT_6 "Use Qt6" ON)
+option(QT_6 "Prefer Qt6" ON)
 
 find_package(Qt6 COMPONENTS Core)
 if(Qt6_FOUND AND QT_6)
-    message(WARNING "mattermost-qt built with Qt6 is buggy, disable with -DQT_6=OFF if Qt5 is available on your system")
+    set(CMAKE_CXX_STANDARD 17)
     set(QT_VERSION_MAJOR 6)
 else()
+    set(CMAKE_CXX_STANDARD 14)
     set(QT_VERSION_MAJOR 5)
 endif()
 
