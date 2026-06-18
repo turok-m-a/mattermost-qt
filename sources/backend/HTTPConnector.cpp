@@ -72,6 +72,7 @@ void HTTPConnector::get (QNetworkRequest& request, HttpResponseCallback response
 {
 	if (request.priority() != QNetworkRequest::LowPriority)
 		request.setPriority(QNetworkRequest::HighPriority);
+	request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 	QNetworkReply* reply = qnetworkManager->get (request);
 	setProcessReply (reply, std::move (responseHandler));
 }
@@ -84,6 +85,7 @@ void HTTPConnector::post (QNetworkRequest& request, const QByteArrayCreator& dat
 
 	if (request.priority() != QNetworkRequest::LowPriority)
 		request.setPriority(QNetworkRequest::HighPriority);
+	request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 	//LOG_DEBUG ("POST " << request.url() << " " << request.rawHeaderList() << data);
 	QNetworkReply* reply = qnetworkManager->post (request, data);
 	setProcessReply (reply, std::move (responseHandler));
@@ -93,6 +95,7 @@ void HTTPConnector::put (QNetworkRequest& request, const QByteArrayCreator& data
 {
 	if (request.priority() != QNetworkRequest::LowPriority)
 		request.setPriority(QNetworkRequest::HighPriority);
+	request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 	QNetworkReply* reply = qnetworkManager->put (request, data);
 	setProcessReply (reply, std::move (responseHandler));
 }
@@ -101,6 +104,7 @@ void HTTPConnector::del (QNetworkRequest& request)
 {
 	if (request.priority() != QNetworkRequest::LowPriority)
 		request.setPriority(QNetworkRequest::HighPriority);
+	request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 	QNetworkReply* reply = qnetworkManager->deleteResource (request);
 	setProcessReply (reply, [](QVariant, QByteArray, const QNetworkReply&){});
 }
@@ -120,7 +124,8 @@ void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (Q
 		}
 #endif
 
-		QVariant statusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute );
+		int HTTPstatusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
+		int statusCode = reply->error();
 		auto data = reply->readAll();
 		reply->deleteLater();
 
@@ -135,8 +140,8 @@ void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (Q
 		}
 #endif
 
-		if (statusCode == 200 || statusCode == 201) {
 			return responseHandler (statusCode, qMove (data), *reply);
+		if (statusCode == QNetworkReply::NoError) {
 		}
 
 		QJsonDocument doc = QJsonDocument::fromJson(data);
@@ -146,10 +151,10 @@ void HTTPConnector::setProcessReply (QNetworkReply* reply, std::function<void (Q
 		error.deserialize (root);
 
 		qCritical() << reply->url();
-		qCritical() << "HTTP error " << statusCode.toInt() << ", message: " << error.message;
+		qCritical() << "network error " << statusCode << "HTTP code " << HTTPstatusCode << ", message: " << error.message;
 
-		if (statusCode.toInt()) {
-			emit onHttpError (statusCode.toInt(), error.message);
+		if (statusCode != QNetworkReply::NoError) {
+			emit onHttpError (statusCode, error.message);
 		}
 	});
 
