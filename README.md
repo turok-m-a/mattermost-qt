@@ -48,15 +48,14 @@ fork from abandoned [mattermost-qt](https://github.com/turok-m-a/mattermost-qt/t
 * Auto-detect if you are working from home and setting it as a status. This can be achieved by looking for an active VPN connection. It will be fully configurable from the settings
 
 # Installation
-The application is developed and tested on Linux Mint. Windows support is not tested.
+The application is developed and tested on Linux Mint. Windows build is not maintained (feel free to create PR).
 
 ## Required packages (Linux)
 ### Ubuntu/Linux MInt
-* QT5 libraries (qtbase5-dev)
-* QT5 websockets library (libqt5websockets5-dev)
-### Fedora
-* QT5 libraries (qt5-qtbase-devel)
-* QT5 websockets library (qt5-qtwebsockets-devel)
+* QT5/6 libraries (qtbase5-dev or qt6-base-dev)
+* QT5/6 websockets library (libqt5websockets5-dev or qt6-websockets-dev)
+### Other
+* QT5 or 6 libraries: base, websockets (check out your distro repositories)
 
 ## Build instructions (Linux)
 It is recommended to build in a separate directory:
