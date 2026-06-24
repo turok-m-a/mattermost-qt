@@ -25,6 +25,8 @@
 #pragma once
 
 #include <QMap>
+#include <QSet>
+#include <QJsonArray>
 #include <map>
 #include <QSharedPointer>
 #include "backend/types/BackendUser.h"
@@ -81,9 +83,13 @@ public:
 	QMap<QString, BackendChannel*> 					channels;
 	QMap<QString, BackendChannel*> 					directChannelsByUser;
 	std::map<QString, BackendUser>					users;
-	BackendUser*									loginUser;
-	BackendUser*									matterpollUser;
-	uint32_t										totalUsersCount;
+	QJsonArray							knownUsers;
+	QSet<QString>							knownActiveUsers;
+	QSet<QString>							knownDeletedUsers;
+	BackendUser*							loginUser;
+	BackendUser*							matterpollUser;
+	uint32_t							totalUsersCount;
+	uint32_t							knownActiveUsersCount;
 };
 
 } /* namespace Mattermost */

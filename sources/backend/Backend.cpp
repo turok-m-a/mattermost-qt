@@ -403,6 +403,14 @@ void Backend::retrieveTotalUsersCount (std::function<void(uint32_t)> callback)
 	}));
 }
 
+void Backend::retrieveKnownUsers (std::function<void()> callback){
+ 	NetworkRequest requestKnown ("users/known");
+ 	httpConnector.get (requestKnown, HttpResponseCallback ([this, callback] (const QJsonDocument& doc) {
+		storage.knownUsers = doc.array();
+		callback();
+	}));
+}
+
 void Backend::retrieveAllUsers ()
 {
 	uint32_t usersPerPage = 200;
@@ -454,9 +462,18 @@ void Backend::retrieveAllUsers ()
 				LOG_DEBUG ("Get Users: Done ");
 				obtainedPages = 0;
 				auto it = storage.users.begin(), end = storage.users.end();
-				totalUserCount = storage.users.size();
-				for (it; it != end; ++it){
-					retrieveUserAvatar (it->first, it->second.update_at);
+				//intersect active and known user sets, just to show correct total number,
+				//save deleted known users, to load their info and avatars later
+				for (it ; it != end; ++it){
+					if (storage.knownUsers.contains(it->first))
+						storage.knownActiveUsers.insert(it->first);
+					else
+						storage.knownDeletedUsers.insert(it->first);
+				}
+				storage.knownActiveUsersCount = storage.knownActiveUsers.size();
+				storage.knownUsers = QJsonArray();
+				for (auto it = storage.knownActiveUsers.begin(); it != storage.knownActiveUsers.end(); ++it){
+					retrieveUserAvatar (*it);
 				}
 			}
 		}));
@@ -464,7 +481,7 @@ void Backend::retrieveAllUsers ()
 	}
 }
 
-void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
+void Backend::retrieveUserAvatar (QString userID)
 {
 	NetworkRequest request ("users/" + userID + "/image");
 	request.setPriority(QNetworkRequest::LowPriority);
@@ -490,9 +507,9 @@ void Backend::retrieveUserAvatar (QString userID, uint64_t lastUpdateTime)
 
 		avatarsLoaded++;
 		if (avatarsLoaded % 50 == 0)
-			emit loadingAvatars(avatarsLoaded,totalUserCount);
-		if (avatarsLoaded == totalUserCount)
-			emit loadingAvatars(totalUserCount,totalUserCount);
+			emit loadingAvatars(avatarsLoaded,storage.knownActiveUsersCount);
+		if (avatarsLoaded == storage.knownActiveUsersCount)
+			emit loadingAvatars(storage.knownActiveUsersCount,storage.knownActiveUsersCount);
 	}));
 }
 

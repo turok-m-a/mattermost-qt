@@ -81,7 +81,10 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 	//backend.retrieveUserAvatar (currentUser.id);
 
 	backend.retrieveTotalUsersCount ([this] (uint32_t) {
-		backend.retrieveAllUsers ();
+		backend.retrieveKnownUsers ([this]() {
+				backend.retrieveAllUsers ();
+			}
+		);
 	});
 
 	/*

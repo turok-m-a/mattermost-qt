@@ -79,7 +79,7 @@ public:
 	void retrieveAllUsers ();
 
 	//get user's avatar image (/users/userID/image). Emits BackendUser::onAvatarChanged
-	void retrieveUserAvatar (QString userID, uint64_t lastUpdateTime = 0);
+	void retrieveUserAvatar (QString userID);
 
 	//get file (files/fileID)
 	void retrieveFile (QString fileID, std::function<void(const QByteArray&)> callback);
@@ -202,6 +202,9 @@ public:
 	Storage& getStorage ();
 
 	ServerDialogsMap& getServerDialogsMap ();
+
+	//retrieve list of users that have any relation with logged in user
+	void retrieveKnownUsers(std::function<void()> callback);
 signals:
 
 	/**
@@ -261,7 +264,6 @@ private:
     bool							autoLoginEnabledFlag;
     uint32_t						nonFilledTeams;
     uint64_t						lastStartTime;
-    unsigned						totalUserCount;
     QAtomicInteger<unsigned>				avatarsLoaded;
 };
 
