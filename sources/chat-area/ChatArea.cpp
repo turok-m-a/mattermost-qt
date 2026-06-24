@@ -74,7 +74,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 			setUserAvatar (*user);
 		});
 
-		if (!user->avatar.isEmpty()) {
+		if (!user->avatar.isNull()) {
 			setUserAvatar (*user);
 		}
 
@@ -404,12 +404,11 @@ ChatArea::~ChatArea()
 
 void ChatArea::setUserAvatar (const BackendUser& user)
 {
-	QImage img = QImage::fromData (user.avatar).scaled (64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-	ui->userAvatar->setPixmap (QPixmap::fromImage(img));
+	ui->userAvatar->setPixmap (user.avatar);
 
 	if (channel.type == BackendChannel::directChannel) {
 		if (!isThread)
-			treeItem->setIcon (QIcon(QPixmap::fromImage(QImage::fromData(user.avatar))));
+			treeItem->setIcon (QIcon(user.avatar));
 	}
 }
 

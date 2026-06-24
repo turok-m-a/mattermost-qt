@@ -49,17 +49,17 @@ AttachedImageFile::AttachedImageFile (Backend& backend, const BackendFile& file,
 		int maxWidth = settings.value(DOWNLOAD_IMAGE_MAX_WIDTH, 500).toInt();
 		int maxHeight = settings.value(DOWNLOAD_IMAGE_MAX_HEIGHT, 500).toInt();
 
-		QImage img = QImage::fromData (fileContents);
-		img.convertTo(QImage::Format_RGB555);
-		if (img.width() > maxWidth) {
-			img = img.scaledToWidth (maxWidth, Qt::SmoothTransformation);
+		QPixmap pixmap;
+		pixmap.loadFromData (fileContents);
+		if (pixmap.width() > maxWidth) {
+			pixmap = pixmap.scaledToWidth (maxWidth, Qt::SmoothTransformation);
 		}
 
-		if (img.height() > maxHeight) {
-			img = img.scaledToHeight (maxHeight, Qt::SmoothTransformation);
+		if (pixmap.height() > maxHeight) {
+			pixmap = pixmap.scaledToHeight (maxHeight, Qt::SmoothTransformation);
 		}
 
-		ui->imagePreview->setPixmap (QPixmap::fromImage(img));
+		ui->imagePreview->setPixmap (pixmap);
 		ui->imagePreview->adjustSize();
 
 		adjustSize();

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <QPixmap>
 #include "BackendTimeZone.h"
 #include "BackendNotifyPreps.h"
 #include "BackendUserProps.h"
@@ -61,7 +62,7 @@ public:
 	void updateFrom (const BackendUser& other, QString& resultString);
 public:
 	QString 			id;
-	QByteArray			avatar;
+	QPixmap				avatar;
 	uint64_t 			create_at;
 	uint64_t			update_at;
 	uint64_t 			delete_at;

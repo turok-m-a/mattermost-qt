@@ -175,7 +175,7 @@ void UserListDialog::create (const FilterListDialogConfig& cfg, const std::set<U
 
 	for (const UserListEntry& entry: users) {
 
-		QTableWidgetItem* nameItem = new QTableWidgetItem (QIcon(QPixmap::fromImage(QImage::fromData (*entry.userAvatar))), entry.fields[0]);
+		QTableWidgetItem* nameItem = new QTableWidgetItem (QIcon(*entry.userAvatar), entry.fields[0]);
 		nameItem->setData (Qt::UserRole, QVariant::fromValue (const_cast<BackendUser*> (entry.dataPointer)));
 
 		ui->tableWidget->setItem (usersCount, 0, nameItem);

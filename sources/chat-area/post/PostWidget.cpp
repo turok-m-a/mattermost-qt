@@ -54,20 +54,18 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	ui->message->setText (formatMessageText (post.message));
 	ui->time->setText (getMessageTimeString (post.create_at));
 
-	if (!post.author || post.author->avatar.isEmpty()) {
+	if (!post.author || post.author->avatar.isNull()) {
 		ui->authorAvatar->setText("");
 		//qDebug() << "Avatar for " << ui->authorName->text() << " is missing";
 	} else {
 		//load the author's avatar, with same size as the ui label
-		QImage img = QImage::fromData (post.author->avatar).scaled (ui->authorAvatar->geometry().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-		ui->authorAvatar->setPixmap (QPixmap::fromImage(img));
+		ui->authorAvatar->setPixmap (post.author->avatar);
 	}
 
 	//avatars are downloaded in background, need to redraw it when ready
 
 	connect (post.author, &BackendUser::onAvatarChanged, this,[this] {
-		QImage img = QImage::fromData (this->post.author->avatar).scaled (ui->authorAvatar->geometry().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-		ui->authorAvatar->setPixmap (QPixmap::fromImage(img));
+		ui->authorAvatar->setPixmap (this->post.author->avatar);
 	});
 
 	/**

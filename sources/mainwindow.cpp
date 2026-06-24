@@ -65,8 +65,7 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 
 	connect (&currentUser, &BackendUser::onAvatarChanged, [this, &currentUser] {
 		LOG_DEBUG ("Got User Image");
-		QImage img = QImage::fromData (currentUser.avatar).scaled(42, 42, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-		ui->usericon_label->setPixmap (QPixmap::fromImage(img));
+		ui->usericon_label->setPixmap (currentUser.avatar);
 	});
 
 	connect (&backend, &Backend::loadingAvatars, this, [this] (unsigned counter, unsigned total) {

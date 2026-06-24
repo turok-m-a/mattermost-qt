@@ -37,8 +37,7 @@ UserProfileDialog::UserProfileDialog (const BackendUser& user, QWidget *parent)
 
     setWindowTitle ("Profile for " + user.getDisplayName() + " - Mattermost");
 
-	QImage img = QImage::fromData (user.avatar).scaled (128, 128, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    ui->avatar->setPixmap (QPixmap::fromImage(img));
+    ui->avatar->setPixmap (user.avatar);
     ui->fullnameValue->setText (user.first_name + " " + user.last_name);
     ui->nicknameValue->setText (getString (user.nickname));
     ui->usernameValue->setText (user.username);

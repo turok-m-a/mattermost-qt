@@ -112,14 +112,14 @@ QComboBox::drop-down {
          </property>
          <property name="minimumSize">
           <size>
-           <width>42</width>
-           <height>42</height>
+           <width>48</width>
+           <height>48</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>42</width>
-           <height>42</height>
+           <width>48</width>
+           <height>48</height>
           </size>
          </property>
          <property name="frameShape">

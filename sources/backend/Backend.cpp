@@ -475,6 +475,7 @@ void Backend::retrieveAllUsers ()
 				for (auto it = storage.knownActiveUsers.begin(); it != storage.knownActiveUsers.end(); ++it){
 					retrieveUserAvatar (*it);
 				}
+				retrieveUserAvatar (getLoginUser().id);
 			}
 		}));
 
@@ -501,7 +502,10 @@ void Backend::retrieveUserAvatar (QString userID)
 			return;
 		}
 
-		user->avatar = data;
+		//we need somehow avoid creating QImage object for each PostWidget
+		QPixmap pixmap;
+		pixmap.loadFromData(data);
+		user->avatar = pixmap.scaled(48,48,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
 
 		emit user->onAvatarChanged();
 

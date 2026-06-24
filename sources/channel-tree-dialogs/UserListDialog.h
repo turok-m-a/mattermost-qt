@@ -76,7 +76,7 @@ public:
 		return fields[userName] < other.fields[userName];
 	}
 public:
-	const QByteArray*		userAvatar;
+	const QPixmap*			userAvatar;
 	const BackendUser*		dataPointer;
 
 	std::array<QString, 4> 	fields;
