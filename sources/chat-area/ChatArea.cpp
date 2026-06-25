@@ -343,8 +343,6 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId, C
 		PostWidget* postWidget = ui->listWidget->findPost (post.id);
 		if (postWidget) {
 			postWidget->setEdited (post.message);
-			// if (post.has_thread && !postWidget->has_thread_button)
-			// 	postWidget->addThreadButton();
 			ui->listWidget->adjustSize();
 		}
 	});

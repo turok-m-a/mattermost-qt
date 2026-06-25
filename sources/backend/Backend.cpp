@@ -307,7 +307,6 @@ void Backend::retrieveUser (QString userID, std::function<void (const BackendUse
 		//std::cout << "get users reply: " << statusCode.toInt() << std::endl;
 
 		BackendUser *user = storage.addUser (doc.object());
-		//retrieveUserAvatar (user->id, user->update_at);
 		callback (*user);
 	}));
 }
@@ -436,7 +435,6 @@ void Backend::retrieveAllUsers ()
 
 			for (const auto &itemRef: doc.array()) {
 				BackendUser *user = storage.addUser (itemRef.toObject());
-				//retrieveUserAvatar (user->id, user->update_at);
 				userIds.push_back (user->id);
 			}
 

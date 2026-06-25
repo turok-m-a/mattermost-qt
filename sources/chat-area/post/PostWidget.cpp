@@ -200,7 +200,6 @@ void PostWidget::openThreadWindow () {
 		}
 	}
 
-	//ChatArea * area = new ChatArea(parentChatArea->backend, parentChatArea->channel, post.id);
 	qDebug() << post.id << post.has_thread << post.hidden << post.root_id;
 }
 

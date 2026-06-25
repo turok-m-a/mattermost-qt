@@ -38,7 +38,6 @@ public:
 	QString				mimeType;
 	size_t				size;
 	QString				extension;
-	QByteArray			mini_preview;
 };
 
 } /* namespace Mattermost */
