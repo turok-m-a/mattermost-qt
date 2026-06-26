@@ -471,7 +471,7 @@ void Backend::retrieveAllUsers ()
 				storage.knownActiveUsersCount = storage.knownActiveUsers.size();
 				storage.knownUsers = QJsonArray();
 				for (auto it = storage.knownActiveUsers.begin(); it != storage.knownActiveUsers.end(); ++it){
-					retrieveUserAvatar (*it);
+					//retrieveUserAvatar (*it);
 				}
 				retrieveUserAvatar (getLoginUser().id);
 			}

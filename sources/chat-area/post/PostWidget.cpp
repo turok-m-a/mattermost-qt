@@ -54,19 +54,19 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	ui->message->setText (formatMessageText (post.message));
 	ui->time->setText (getMessageTimeString (post.create_at));
 
-	if (!post.author || post.author->avatar.isNull()) {
-		ui->authorAvatar->setText("");
-		//qDebug() << "Avatar for " << ui->authorName->text() << " is missing";
-	} else {
-		//load the author's avatar, with same size as the ui label
-		ui->authorAvatar->setPixmap (post.author->avatar);
-	}
 
 	//avatars are downloaded in background, need to redraw it when ready
 
 	connect (post.author, &BackendUser::onAvatarChanged, this,[this] {
 		ui->authorAvatar->setPixmap (this->post.author->avatar);
 	});
+
+	if (post.author) {
+		if (post.author->avatar.isNull())
+			backend.retrieveUserAvatar(post.author->id);
+		else
+			ui->authorAvatar->setPixmap (this->post.author->avatar);
+	}
 
 	/**
 	 * Add root post as a quote box.

@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>32</height>
+    <height>30</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>26</height>
+   </size>
   </property>
   <property name="maximumSize">
    <size>
@@ -39,14 +45,14 @@
     <widget class="QLabel" name="icon">
      <property name="minimumSize">
       <size>
-       <width>26</width>
-       <height>26</height>
+       <width>24</width>
+       <height>24</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>26</width>
-       <height>26</height>
+       <width>24</width>
+       <height>24</height>
       </size>
      </property>
      <property name="frameShape">
