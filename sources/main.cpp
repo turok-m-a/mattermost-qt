@@ -111,6 +111,7 @@ int main( int argc, char *argv[])
 {
 	QCoreApplication::setOrganizationName("mattermost-native");
 	QCoreApplication::setApplicationName("Mattermost");
+	QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
 
 	Mattermost::MattermostApplication app (argc, argv);
 	app.openLoginWindow ();
