@@ -293,7 +293,7 @@ void Backend::logout (std::function<void ()> callback)
 	}));
 }
 
-void Backend::retrieveUser (QString userID, std::function<void (const BackendUser&)> callback)
+void Backend::retrieveUser (const QString & userID, std::function<void(const BackendUser&)> callback)
 {
 	NetworkRequest request ("users/" + userID);
 
@@ -342,7 +342,7 @@ void Backend::updateUserPreferences (const BackendUserPreferences& preferences)
 	}));
 }
 
-void Backend::retrieveMultipleUsersStatus (QVector<QString> userIDs, std::function<void ()> callback)
+void Backend::retrieveMultipleUsersStatus (const QVector<QString> & userIDs, std::function<void()> callback)
 {
 	if (userIDs.isEmpty()) {
 		return; //nothing to do
@@ -480,7 +480,7 @@ void Backend::retrieveAllUsers ()
 	}
 }
 
-void Backend::retrieveUserAvatar (QString userID)
+void Backend::retrieveUserAvatar (const QString & userID)
 {
 	NetworkRequest request ("users/" + userID + "/image", true);
 	request.setPriority(QNetworkRequest::LowPriority);
@@ -515,7 +515,7 @@ void Backend::retrieveUserAvatar (QString userID)
 	}));
 }
 
-void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray&)> callback)
+void Backend::retrieveFile (const QString & fileID, std::function<void(const QByteArray&)> callback)
 {
 	NetworkRequest request ("files/" + fileID, true);
 
@@ -531,6 +531,8 @@ void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray
 		 */
 		QTimer::singleShot(1, [callback, cachedFile] {
 			callback (cachedFile->readAll());
+			cachedFile->close();
+			delete cachedFile;
 		});
 		return;
 	}
@@ -546,6 +548,8 @@ void Backend::retrieveFile (QString fileID, std::function<void (const QByteArray
 		cacheIO->write (data);
 		attachmentsCache.insert (cacheIO);
 		callback (data);
+		cacheIO->close();
+		delete cacheIO;
 	}));
 }
 

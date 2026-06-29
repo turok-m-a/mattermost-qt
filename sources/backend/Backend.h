@@ -62,7 +62,7 @@ public:
 	void logout (std::function<void ()> callback);
 
 	//get specific user (/users/userID)
-	void retrieveUser (QString userID, std::function<void(const BackendUser&)> callback);
+	void retrieveUser (const QString& userID, std::function<void(const BackendUser&)> callback);
 
 	//get user's preferences (/users/{user_id}/preferences)
 	void retrieveUserPreferences ();
@@ -70,7 +70,7 @@ public:
 	void updateUserPreferences (const BackendUserPreferences& preferences);
 
 	//get user's status (/users/status/ids)
-	void retrieveMultipleUsersStatus (QVector<QString> userIDs, std::function<void()> callback);
+	void retrieveMultipleUsersStatus (const QVector<QString>& userIDs, std::function<void()> callback);
 
 	//get count of all users in the system (users/stats)
 	void retrieveTotalUsersCount (std::function<void(uint32_t)> callback);
@@ -79,10 +79,10 @@ public:
 	void retrieveAllUsers ();
 
 	//get user's avatar image (/users/userID/image). Emits BackendUser::onAvatarChanged
-	void retrieveUserAvatar (QString userID);
+	void retrieveUserAvatar (const QString& userID);
 
 	//get file (files/fileID)
-	void retrieveFile (QString fileID, std::function<void(const QByteArray&)> callback);
+	void retrieveFile (const QString& fileID, std::function<void(const QByteArray&)> callback);
 
 	//get own teams (/users/me/teams)
 	void retrieveOwnTeams (std::function<void(BackendTeam&)> callback);
