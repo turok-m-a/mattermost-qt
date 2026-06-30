@@ -548,8 +548,6 @@ void Backend::retrieveFile (const QString & fileID, std::function<void(const QBy
 		cacheIO->write (data);
 		attachmentsCache.insert (cacheIO);
 		callback (data);
-		cacheIO->close();
-		delete cacheIO;
 	}));
 }
 
