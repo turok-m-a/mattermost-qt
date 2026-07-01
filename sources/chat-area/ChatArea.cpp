@@ -76,6 +76,8 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 		if (!user->avatar.isNull()) {
 			setUserAvatar (*user);
+		} else {
+			backend.retrieveUserAvatar(user->id);
 		}
 
 		connect (user, &BackendUser::onStatusChanged, [this, user] {
@@ -404,10 +406,8 @@ void ChatArea::setUserAvatar (const BackendUser& user)
 {
 	ui->userAvatar->setPixmap (user.avatar);
 
-	if (channel.type == BackendChannel::directChannel) {
-		if (!isThread)
-			treeItem->setIcon (QIcon(user.avatar));
-	}
+	if (channel.type == BackendChannel::directChannel && !isThread)
+		treeItem->setIcon (QIcon(user.avatar));
 }
 
 Ui::ChatArea* ChatArea::getUi ()
