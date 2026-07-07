@@ -53,6 +53,11 @@ ChannelTree::ChannelTree (QWidget* parent)
 		}
 
 		getCurrentPage ()->onDeactivate ();
+
+		if (!newPage->initialized){
+			getCurrentPage()->deinit();
+			newPage->init();
+		}
 		chatAreaStackedWidget->setCurrentWidget (newPage);
 		newPage->onActivate ();
 

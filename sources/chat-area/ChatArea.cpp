@@ -37,7 +37,7 @@ static const QIcon& getUserButtonIcon ()
 	return icon;
 }
 
-ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent)
+ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent, bool initialize)
 :QWidget(parent)
 ,ui(new Ui::ChatArea)
 ,backend (backend)
@@ -50,7 +50,17 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 ,isThread(false)
 ,areaIsFilled(false)
 ,parentArea(NULL)
-{
+,initialized(false) {
+	if (initialize)
+		init();
+}
+
+void ChatArea::init() {
+	if (initialized)
+		return;
+	//ChatArea is deleted on de-init;
+	if (!ui)
+		ui = new Ui::ChatArea();
 	//accept drag&drop attachments
 	setAcceptDrops(true);
 
@@ -96,7 +106,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	/*
 	 * First, get the first unread post (if any). So that a separator can be inserted before it
 	 */
-	backend.retrieveChannelUnreadPost (channel, [this, &backend, &channel] (const QString& postId){
+	backend.retrieveChannelUnreadPost (channel, [this] (const QString& postId){
 		lastReadPostId = postId;
 
 		if (!postId.isEmpty()) {
@@ -104,7 +114,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 		}
 
 		//for (int loadLimit = 40; !areaIsFilled && loadLimit > 0; loadLimit--)	//if all 1000 messages look like threaded, something is wrong, give up
-			
+
 			//TODO: we cant check if area is filled there (Qt signal is processed later somehow), need to solve this problem in a better way
 			backend.retrieveChannelPosts (channel, 0, 100); //retrieve more posts to avoid empty window, just in case if all posts are threaded
 	});
@@ -206,7 +216,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	});
 
 	//when scrolling to top, get older posts
-	connect (ui->listWidget, &PostsListWidget::scrolledToTop, [this, &backend, &channel] {
+	connect (ui->listWidget, &PostsListWidget::scrolledToTop, [this] {
 		if (!gettingOlderPosts) {
 			//do not spam requests
 			gettingOlderPosts = true;
@@ -215,7 +225,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	});
 
 	// dirty solution to non-scrollable window
-	connect (ui->loadOldPosts, &QPushButton::clicked, [this, &backend, &channel] {
+	connect (ui->loadOldPosts, &QPushButton::clicked, [this] {
 		if (!gettingOlderPosts) {
 			//do not spam requests
 			gettingOlderPosts = true;
@@ -262,6 +272,17 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 
 	//hide the users button. It will be shown when the channel members list is retrieved
 	ui->usersButton->hide();
+
+	initialized = true;
+}
+
+void ChatArea::deinit() {
+	if (!initialized)
+		return;
+	disconnect();
+	delete ui;
+	ui = nullptr;
+	initialized = false;
 }
 
 ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId, ChatArea* parentArea)
@@ -277,6 +298,7 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, QString rootId, C
 ,isThread(true)
 ,parentPostId(rootId)
 ,parentArea(parentArea)
+,initialized(true)
 {
 	//accept drag&drop attachments
 	setAttribute (Qt::WA_DeleteOnClose);
@@ -667,6 +689,8 @@ void ChatArea::setUnreadMessagesCount (uint32_t count)
 
 void ChatArea::resizeEvent (QResizeEvent* event)
 {
+	if (!initialized)
+		return;
 	//if the listWidget is near bottom of the posts list, keep it at bottom
 	ui->listWidget->resizeToBottom();
 	QWidget::resizeEvent (event);

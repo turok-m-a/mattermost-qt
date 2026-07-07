@@ -50,7 +50,7 @@ class QChatArea;
 class ChatArea: public QWidget {
 	Q_OBJECT
 public:
-	explicit ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent = nullptr);
+	explicit ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent = nullptr, bool initialize = true);
 	explicit ChatArea (Backend& backend, BackendChannel& channel, QString rootId, ChatArea* parentArea); //for thread window
 	~ChatArea();
 public:
@@ -107,6 +107,9 @@ public:
 	ChannelItem* 					treeItem;
 	QString 						lastReadPostId;
 	QDockWidget*					pinnedPostsDockWidget;
+	void						init();
+	void						deinit();
+
 
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;
@@ -115,6 +118,8 @@ public:
 	bool							areaIsFilled;
 	//thread chat window
 	bool							isThread;
+	//ChatArea can be created without initializing (useful for rarely used channels)
+	volatile bool						initialized;
 	QSet<ChatArea*> 					threadsAreas;
 	QString							root_id;
 };
