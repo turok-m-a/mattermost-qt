@@ -17,7 +17,7 @@ fork from abandoned [mattermost-qt](https://github.com/turok-m-a/mattermost-qt/t
 * message editing and deleting
 * Receiving attached files. Image files can be viewed in a simple viewer and other files can be downloaded or opened with default application
 * Sending messages with attachments is supported too
-* ~~If a reconnect occurs, the chat history is synchronized with the server, so that no messages are lost.~~ to be fixed
+* ~~If a reconnect occurs, the chat history is synchronized with the server, so that no messages are lost.~~ to be fixed, it works ocasionally.
 * Cache is used for faster image loading.
 * update, when a new team is added and you are added to it
 * Preview of team members, channel members, users, etc. There are more items to be added, but the basic functionality is supported
@@ -30,11 +30,11 @@ fork from abandoned [mattermost-qt](https://github.com/turok-m-a/mattermost-qt/t
 * Hidden/archived chats - do not receive notifications from them, do not load and receive messages until selected from list.
 * "TODO answer list" - mark messages as unread (or some other way), and put them on special list.
 * ~~Find a better way to handle thread widnows.~~ done
-* Make main window fully resizable, auto/manual option to hide chat list.
+* ~~Make main window fully resizable~~, auto/manual option to hide chat list.
 * Settings for notifications. At least option to notify only on PM and username mentioned.
 * Fix new reactions not working, support for custom reactions. At least - display :reaction name: on button if icon cannot be displayed.
-* Load avatars only for users that are members of channel you are connected to, plus PM list users.
-* ~~Load avatars only for posts that are currently displayed. If not possible, implement background avatar loading, so user does not need to wait for too long on first client launch.~~ background loading implemented, increasing cache size (its adjustable now) allows to avoid this process. avatars for deleted users are not loaded now (as well as user name and other info).
+* ~~Load avatars only for users that are members of channel you are connected to, plus PM list users.~~ done. still need to load user info for deleted users, to display user name for chat with deleted user (**btw, official client hides chats with deleted users, even if messages are still saved in DB and this client gets them!**)
+* ~~Load avatars only for posts that are currently displayed. If not possible, implement background avatar loading, so user does not need to wait for too long on first client launch.~~ **done**
 * Try to optimize RAM usage even more (just as a challenge)
 # What is planned to be implemented (at some distant future)
 * pinning posts to a channel and displaying pinned posts
