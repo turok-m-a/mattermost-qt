@@ -68,12 +68,6 @@ MainWindow::MainWindow (QWidget *parent, QSystemTrayIcon& trayIcon, Backend& _ba
 		ui->usericon_label->setPixmap (currentUser.avatar);
 	});
 
-	connect (&backend, &Backend::loadingAvatars, this, [this] (unsigned counter, unsigned total) {
-		setWindowTitle("Load avatars on 1st run " + QString::number(counter) + "/" + QString::number(total));
-		if (counter == total)
-			setWindowTitle("Mattermost");
-	});
-
 	/*
 	 * Gets the LoginUser's image for the user icon
 	 */

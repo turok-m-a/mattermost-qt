@@ -470,9 +470,7 @@ void Backend::retrieveAllUsers ()
 				}
 				storage.knownActiveUsersCount = storage.knownActiveUsers.size();
 				storage.knownUsers = QJsonArray();
-				for (auto it = storage.knownActiveUsers.begin(); it != storage.knownActiveUsers.end(); ++it){
-					//retrieveUserAvatar (*it);
-				}
+				//other users avatars are loaded only when needed
 				retrieveUserAvatar (getLoginUser().id);
 			}
 		}));
@@ -507,11 +505,6 @@ void Backend::retrieveUserAvatar (const QString & userID)
 
 		emit user->onAvatarChanged();
 
-		avatarsLoaded++;
-		if (avatarsLoaded % 50 == 0)
-			emit loadingAvatars(avatarsLoaded,storage.knownActiveUsersCount);
-		if (avatarsLoaded == storage.knownActiveUsersCount)
-			emit loadingAvatars(storage.knownActiveUsersCount,storage.knownActiveUsersCount);
 	}));
 }
 
