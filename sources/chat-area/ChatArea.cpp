@@ -217,8 +217,6 @@ ChatArea::ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* tree
 	// dirty solution to non-scrollable window
 	connect (ui->loadOldPosts, &QPushButton::clicked, [this, &backend, &channel] {
 		if (!gettingOlderPosts) {
-			//do not spam requests
-			gettingOlderPosts = true;
 			backend.retrieveChannelOlderPosts (channel, 140);
 		}
 	});
