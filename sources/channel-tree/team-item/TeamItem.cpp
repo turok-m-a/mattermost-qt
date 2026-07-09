@@ -57,7 +57,7 @@ void TeamItem::addChannel (BackendChannel& channel, QWidget *parent, QStackedWid
 	ChannelItem* item = createChannelItem (backend, itemWidget);
 	insertChild (getChannelIndex (channel), item);
 
-	ChatArea* chatArea = new ChatArea (backend, channel, item, (QWidget*)chatAreaParent);
+	ChatArea* chatArea = new ChatArea (backend, channel, item, (QWidget*)chatAreaParent, false);
 	chatAreaParent->addWidget(chatArea);
 
 	item->setData(0, Qt::UserRole, QVariant::fromValue (chatArea));

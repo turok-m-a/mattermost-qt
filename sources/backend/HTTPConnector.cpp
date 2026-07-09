@@ -36,6 +36,7 @@
 #include "QByteArrayCreator.h"
 #include "log.h"
 #include "Settings.h"
+#include <QThread>
 
 namespace Mattermost {
 
@@ -72,7 +73,8 @@ void HTTPConnector::get (QNetworkRequest& request, HttpResponseCallback response
 {
 	if (request.priority() != QNetworkRequest::LowPriority)
 		request.setPriority(QNetworkRequest::HighPriority);
-	request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+	//request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+	//QThread::msleep(10);
 	QNetworkReply* reply = qnetworkManager->get (request);
 	setProcessReply (reply, std::move (responseHandler));
 }

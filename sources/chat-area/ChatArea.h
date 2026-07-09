@@ -23,6 +23,7 @@
 #include <QDate>
 #include <QSet>
 #include <QTreeWidgetItem>
+#include <QScrollBar>
 
 #include "outgoing-post/OutgoingPostCreator.h"
 
@@ -50,7 +51,7 @@ class QChatArea;
 class ChatArea: public QWidget {
 	Q_OBJECT
 public:
-	explicit ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent = nullptr);
+	explicit ChatArea (Backend& backend, BackendChannel& channel, ChannelItem* treeItem, QWidget *parent = nullptr, bool initialize = true);
 	explicit ChatArea (Backend& backend, BackendChannel& channel, QString rootId, ChatArea* parentArea); //for thread window
 	~ChatArea();
 public:
@@ -96,6 +97,11 @@ private:
 	void setUnreadMessagesCount (uint32_t count);
 	void setTextEditWidgetHeight (int height);
 
+	template<typename T, typename S, typename R>
+	void connectLambda (T* senderInstance, S&& signal, R&& receiver)
+	{
+		signalConnections.emplace_back (connect (senderInstance, signal, receiver));
+	}
 	
 	ChatArea*					parentArea;
 	QString						parentPostId;
@@ -107,6 +113,9 @@ public:
 	ChannelItem* 					treeItem;
 	QString 						lastReadPostId;
 	QDockWidget*					pinnedPostsDockWidget;
+	void						init();
+	void						deinit();
+
 
 	uint32_t						unreadMessagesCount;
 	int 							texteditDefaultHeight;
@@ -115,8 +124,13 @@ public:
 	bool							areaIsFilled;
 	//thread chat window
 	bool							isThread;
+	bool							postsRetrieved;
+	//ChatArea can be created without initializing (useful for rarely used channels)
+	volatile bool						initialized;
 	QSet<ChatArea*> 					threadsAreas;
 	QString							root_id;
+	std::vector<QMetaObject::Connection> 		signalConnections;
+	int					lastScrollPos;
 };
 
 } /* namespace Mattermost */
