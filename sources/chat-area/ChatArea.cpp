@@ -199,14 +199,6 @@ void ChatArea::init() {
 		setTextEditWidgetHeight (height);
 	});
 
-	//when scrolling to top, get older posts
-	connect (ui->listWidget, &PostsListWidget::scrolledToTop, this, [this] {
-		if (!gettingOlderPosts) {
-			//do not spam requests
-			gettingOlderPosts = true;
-			backend.retrieveChannelOlderPosts (channel, 40);
-		}
-	});
 
 	// dirty solution to non-scrollable window
 	connect (ui->loadOldPosts, &QPushButton::clicked, this,[this] {
@@ -252,29 +244,50 @@ void ChatArea::init() {
 	/*
 	 * First, get the first unread post (if any). So that a separator can be inserted before it
 	 */
-	// backend.retrieveChannelUnreadPost (channel, [this] (const QString& postId){
-	// 	lastReadPostId = postId;
- //
-	// 	if (!postId.isEmpty()) {
-	// 		qDebug () << "Last Read post for " << channel.display_name << ": " << postId;
-	// 	}
- //
-	// 	//for (int loadLimit = 40; !areaIsFilled && loadLimit > 0; loadLimit--)	//if all 1000 messages look like threaded, something is wrong, give up
- //
-	// 		//TODO: we cant check if area is filled there (Qt signal is processed later somehow), need to solve this problem in a better way
-	// 		backend.retrieveChannelPosts (channel, 0, 100); //retrieve more posts to avoid empty window, just in case if all posts are threaded
-	// });
+
+	//elapsed days since the last post that was added from the new posts packet
+	int elapsedDaysSinceLastNewPost = INT32_MAX;
+
+	//elapsed days since the oldest post that was available before retrieving older posts
+	int elapsedDaysSinceFirstExistingPost = INT32_MAX;
+	QDate currentDate = QDateTime::currentDateTime().date();
 	if (postsRetrieved){
-		ChannelNewPostsChunk postsChunk;
-		auto it = channel.posts.begin(), end = channel.posts.end();
-		//convert to post pointers
-		for (it ; it != end; ++it){
-			postsChunk.postsToAdd.push_back(&(*it));
+		int insertPos = 0;
+		int postSeq = 0;
+		for(auto& post: channel.posts ) {
+		if (post.root_id.isEmpty()){
+
+			int elapsedDaysSinceThisNewPost = post.getCreationTime ().date().daysTo (currentDate);
+
+			/**
+			 * Add a day separator, if the next added post is from a day, different from the previous added post.
+			 * Day separator is always added for the first new post.
+			 */
+			if (elapsedDaysSinceThisNewPost != elapsedDaysSinceLastNewPost) {
+
+				elapsedDaysSinceLastNewPost = elapsedDaysSinceThisNewPost;
+				ui->listWidget->addDaySeparator (insertPos, elapsedDaysSinceThisNewPost);
+				++insertPos;
+			}
+
+			ui->listWidget->insertPost (insertPos, new PostWidget (backend, post, ui->listWidget, this, nullptr));
+			++insertPos;
+			++postSeq;
+
+			if (post.id == lastReadPostId) {
+				ui->listWidget->addNewMessagesSeparator ();
+				++insertPos;
+			}
 		}
-		ChannelNewPosts newPosts;
-		newPosts.postsToAdd.push_back(postsChunk);
-		fillChannelPosts(newPosts);
+
+
+		}
+		ui->listWidget->verticalScrollBar()->setValue(lastScrollPos);
 	} else {
+		// backend.retrieveChannelUnreadPost (channel, [this] (const QString& postId){
+		// 	lastReadPostId = postId;
+		// });
+
 		backend.retrieveChannelPosts (channel, 0, 100);
 		postsRetrieved = true;
 	}
@@ -286,6 +299,15 @@ void ChatArea::init() {
 	ui->usersButton->hide();
 
 	initialized = true;
+
+	//when scrolling to top, get older posts
+	connect (ui->listWidget, &PostsListWidget::scrolledToTop, this, [this] {
+		if (!gettingOlderPosts) {
+			//do not spam requests
+			gettingOlderPosts = true;
+			backend.retrieveChannelOlderPosts (channel, 40);
+		}
+	});
 }
 
 void ChatArea::deinit() {
@@ -300,6 +322,7 @@ void ChatArea::deinit() {
 	//delete ui;
 	//ui = nullptr;
 	lastScrollPos = ui->listWidget->verticalScrollBar()->value();
+	qDebug() << lastScrollPos;
 	initialized = false;
 }
 
@@ -557,9 +580,6 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 
 	gettingOlderPosts = false;
 
-	ui->listWidget->verticalScrollBar()->setValue(lastScrollPos);
-
-
 	/**
 	 * If existing posts and new posts are from the same day, remove the day separator (if any) from the existing posts list
 	 */
@@ -568,7 +588,7 @@ void ChatArea::fillChannelPosts (const ChannelNewPosts& newPosts)
 		daySeparatorOnTop = nullptr;
 		qDebug () << "Delete day separator";
 	}
-
+	ui->listWidget->scrollToBottom ();
 	if (!isThread)
 		setUnreadMessagesCount (unreadMessagesCount);
 }
@@ -625,7 +645,6 @@ void ChatArea::onActivate ()
 	backend.setCurrentChannel (channel);
 	backend.markChannelAsViewed (channel);
 	init();
-	ui->listWidget->scrollToUnreadPostsOrBottom ();
 }
 
 void ChatArea::onDeactivate ()

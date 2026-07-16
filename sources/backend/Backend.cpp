@@ -438,8 +438,8 @@ void Backend::retrieveAllUsers ()
 				userIds.push_back (user->id);
 			}
 
-			retrieveMultipleUsersStatus (userIds, [] {
-			});
+			// retrieveMultipleUsersStatus (userIds, [] {
+			// });
 
 			LOG_DEBUG ("Page " << page << " (" << obtainedPages << " of " << totalPages
 			           << "): users count: " << doc.array().size()

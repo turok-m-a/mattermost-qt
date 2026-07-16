@@ -52,7 +52,7 @@ PostsListWidget::PostsListWidget (QWidget* parent)
 	connect (this, &QListWidget::customContextMenuRequested, this, &PostsListWidget::showContextMenu);
 
 	connect (verticalScrollBar(), &QAbstractSlider::valueChanged, [this] (int value) {
-		if (value == 0) {
+		if (value == 0 && verticalScrollBar()->maximum() != 0) {
 			emit scrolledToTop ();
 		}
 	});
