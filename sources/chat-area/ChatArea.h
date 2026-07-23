@@ -96,12 +96,6 @@ private:
 	void moveOnListTop ();
 	void setUnreadMessagesCount (uint32_t count);
 	void setTextEditWidgetHeight (int height);
-
-	template<typename T, typename S, typename R>
-	void connectLambda (T* senderInstance, S&& signal, R&& receiver)
-	{
-		signalConnections.emplace_back (connect (senderInstance, signal, receiver));
-	}
 	
 	ChatArea*					parentArea;
 	QString						parentPostId;
@@ -130,7 +124,7 @@ public:
 	QSet<ChatArea*> 					threadsAreas;
 	QString							root_id;
 	std::vector<QMetaObject::Connection> 		signalConnections;
-	int					lastScrollPos;
+	double					scrollRatio;
 };
 
 } /* namespace Mattermost */

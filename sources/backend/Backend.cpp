@@ -46,12 +46,6 @@
 #include "emoji/EmojiInfo.h"
 #include "log.h"
 
-/**
- * Get number of 'containers' needed for 'total' items, if each container
- * can hold 'capacity' items. For example, getting page count
- */
-#define CONTAINER_COUNT(total,capacity) (!(total)?0:((total)-1)/(capacity)+1)
-
 namespace Mattermost {
 
 namespace RequestTrackerID {
@@ -412,16 +406,15 @@ void Backend::retrieveKnownUsers (std::function<void()> callback){
 
 void Backend::retrieveAllUsers ()
 {
-	uint32_t usersPerPage = 200;
+	const uint32_t usersPerPage = 200;
 
-	//+1, because the total_users_count value does NOT tell the total count that this request will return
-	uint32_t totalPages = CONTAINER_COUNT (storage.totalUsersCount, usersPerPage) + 1;
+	uint32_t totalPages = storage.totalUsersCount / usersPerPage + 1;
 	static uint32_t obtainedPages;
 
 	for (uint32_t page = 0; page < totalPages; ++page) {
 		NetworkRequest request ("users?per_page=" + QString::number(usersPerPage) + "&active=true&page=" + QString::number(page));
 
-		httpConnector.get (request, HttpResponseCallback ([this, page, totalPages] (const QJsonDocument& doc) {
+		httpConnector.get (request, HttpResponseCallback ([this, page, totalPages, usersPerPage] (const QJsonDocument& doc) {
 
 			LOG_DEBUG ("retrieveAllUsers reply");
 
@@ -431,7 +424,7 @@ void Backend::retrieveAllUsers ()
 #endif
 
 			QVector<QString> userIds;
-			userIds.reserve (200);
+			userIds.reserve (usersPerPage);
 
 			for (const auto &itemRef: doc.array()) {
 				BackendUser *user = storage.addUser (itemRef.toObject());

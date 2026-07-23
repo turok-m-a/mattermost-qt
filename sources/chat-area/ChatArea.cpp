@@ -108,24 +108,26 @@ void ChatArea::init() {
 	if (initialized)
 		return;
 
+	//save all lambda slot connections, they cannot be disconnected without this
 
-
-	connect (&channel, &BackendChannel::onViewed,this, [this] {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onViewed,this, [this] {
 		LOG_DEBUG ("Channel viewed: " << this->channel.display_name);
 		setUnreadMessagesCount (0);
 		ui->listWidget->removeNewMessagesSeparatorAfterTimeout (1000);
-	});
+	})
+	);
 
-	connect (&channel, &BackendChannel::onUpdated,this, [this] {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onUpdated,this, [this] {
 		ui->titleLabel->setText (this->channel.display_name);
 		this->treeItem->setLabel (this->channel.display_name);
 		ui->statusLabel->setText (this->channel.getChannelDescription ());
-	});
+	})
+	);
 
 
 	connect (&channel, &BackendChannel::onNewPosts, this,  &ChatArea::fillChannelPosts);
 
-	connect (&channel, &BackendChannel::onPinnedPostsReceived,this, [this] () {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onPinnedPostsReceived,this, [this] () {
 		ui->pinnedPostsButton->show();
 		uint32_t pinnedPostCount = this->channel.pinnedPosts.size();
 		const char* pinnedPostsString[2] = {
@@ -134,7 +136,8 @@ void ChatArea::init() {
 		};
 
 		ui->pinnedPostsButton->setText (QString::number (pinnedPostCount) + pinnedPostsString[pinnedPostCount > 1]);
-	});
+	})
+	);
 
 	connect (&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
 
@@ -144,7 +147,7 @@ void ChatArea::init() {
 
 	connect (&channel, &BackendChannel::onUserTyping, this, &ChatArea::handleUserTyping);
 
-	connect (&channel, &BackendChannel::onPostEdited, this,[this] (BackendPost& post) {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onPostEdited, this,[this] (BackendPost& post) {
 		PostWidget* postWidget = ui->listWidget->findPost (post.id);
 		if (postWidget) {
 			postWidget->setEdited (post.message);
@@ -152,67 +155,75 @@ void ChatArea::init() {
 				postWidget->addThreadButton();
 			ui->listWidget->adjustSize();
 		}
-	});
+	})
+	);
 
-	connect (&channel, &BackendChannel::onPostReactionUpdated,this, [this] (BackendPost& post) {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onPostReactionUpdated,this, [this] (BackendPost& post) {
 		PostWidget* postWidget = ui->listWidget->findPost (post.id);
 
 		if (postWidget) {
 			postWidget->updateReactions ();
 			ui->listWidget->adjustSize();
 		}
-	});
+	})
+	);
 
-	connect (&channel, &BackendChannel::onPostDeleted,this, [this] (const QString& postId) {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onPostDeleted,this, [this] (const QString& postId) {
 		PostWidget* postWidget = ui->listWidget->findPost (postId);
 
 		if (postWidget) {
 			postWidget->markAsDeleted ();
 			ui->listWidget->adjustSize();
 		}
-	});
+	})
+	);
 
-	connect (&channel, &BackendChannel::onUserAdded, this, [this] (const BackendUser&) {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onUserAdded, this, [this] (const BackendUser&) {
 		ui->usersButton->setText (QString::number (this->channel.members.size()) + " members");
-	});
+	})
+	);
 
-	connect (&channel, &BackendChannel::onUserRemoved, this, [this] (const BackendUser&) {
+	signalConnections.push_back( connect (&channel, &BackendChannel::onUserRemoved, this, [this] (const BackendUser&) {
 		ui->usersButton->setText (QString::number (this->channel.members.size()) + " members");
-	});
-
+	})
+	);
 	//initiate editing of post, when edit is selected from the context menu
 	connect (ui->listWidget, &PostsListWidget::postEditInitiated, ui->outgoingPostCreator, &OutgoingPostCreator::postEditInitiated);
 
 	connect (ui->outgoingPostCreator, &OutgoingPostCreator::postEditFinished, ui->listWidget, &PostsListWidget::postEditFinished);
 
 
-	connect (ui->splitter, &QSplitter::splitterMoved,this, [this] {
+	signalConnections.push_back( connect (ui->splitter, &QSplitter::splitterMoved,this, [this] {
 		texteditDefaultHeight = ui->splitter->sizes()[1];
-	});
+	})
+	);
 
-	connect (ui->outgoingPostCreator, &OutgoingPostCreator::heightChanged, this, [this] (int height) {
+	signalConnections.push_back( connect (ui->outgoingPostCreator, &OutgoingPostCreator::heightChanged, this, [this] (int height) {
 
 		if (height < texteditDefaultHeight) {
 			height = texteditDefaultHeight;
 		}
 
 		setTextEditWidgetHeight (height);
-	});
+	})
+	);
 
 
 	// dirty solution to non-scrollable window
-	connect (ui->loadOldPosts, &QPushButton::clicked, this,[this] {
+	signalConnections.push_back( connect (ui->loadOldPosts, &QPushButton::clicked, this,[this] {
 		if (!gettingOlderPosts) {
 			backend.retrieveChannelOlderPosts (channel, 140);
 		}
-	});
+	})
+	);
 
-	connect (ui->usersButton, &QPushButton::clicked, this,[this] {
+	signalConnections.push_back( connect (ui->usersButton, &QPushButton::clicked, this,[this] {
 		ViewChannelMembersListDialog* dialog = new ViewChannelMembersListDialog (this->backend, this->channel, this);
 		dialog->show ();
-	});
+	})
+	);
 
-	connect (ui->pinnedPostsButton, &QPushButton::clicked, this,[this] {
+	signalConnections.push_back( connect (ui->pinnedPostsButton, &QPushButton::clicked, this,[this] {
 
 		if (pinnedPostsDockWidget) {
 			delete (pinnedPostsDockWidget);
@@ -239,7 +250,8 @@ void ChatArea::init() {
 
 		ui->headerLayout->addWidget(pinnedPostsDockWidget);
 
-	});
+	})
+	);
 
 	/*
 	 * First, get the first unread post (if any). So that a separator can be inserted before it
@@ -282,7 +294,8 @@ void ChatArea::init() {
 
 
 		}
-		ui->listWidget->verticalScrollBar()->setValue(lastScrollPos);
+		ui->listWidget->updateGeometry();
+		ui->listWidget->verticalScrollBar()->setValue(scrollRatio*(double)ui->listWidget->verticalScrollBar()->maximum());
 	} else {
 		// backend.retrieveChannelUnreadPost (channel, [this] (const QString& postId){
 		// 	lastReadPostId = postId;
@@ -301,28 +314,27 @@ void ChatArea::init() {
 	initialized = true;
 
 	//when scrolling to top, get older posts
-	connect (ui->listWidget, &PostsListWidget::scrolledToTop, this, [this] {
+	signalConnections.push_back( connect (ui->listWidget, &PostsListWidget::scrolledToTop, this, [this] {
 		if (!gettingOlderPosts) {
 			//do not spam requests
 			gettingOlderPosts = true;
 			backend.retrieveChannelOlderPosts (channel, 40);
 		}
-	});
+	})
+	);
 }
 
 void ChatArea::deinit() {
 	if (!initialized)
 		return;
 	for (auto& it: signalConnections) {
-		disconnect (it);
+		disconnect(it);
 	}
+	disconnect(&channel, &BackendChannel::onNewPost, this, &ChatArea::appendChannelPost);
+	scrollRatio = (double)ui->listWidget->verticalScrollBar()->value() / (double)ui->listWidget->verticalScrollBar()->maximum();
+	signalConnections.clear();
 	ui->listWidget->clear();
 	lastReadPostId.clear();
-	//qDeleteAll(findChildren<QWidget*>(QString(), Qt::FindChildrenRecursively));
-	//delete ui;
-	//ui = nullptr;
-	lastScrollPos = ui->listWidget->verticalScrollBar()->value();
-	qDebug() << lastScrollPos;
 	initialized = false;
 }
 
@@ -601,6 +613,7 @@ void ChatArea::appendChannelPost (BackendPost& post)
 	if(post.root_id != root_id)	//filter posts from other threads. posts without thread have empty root_id, so the non-thread window
 		return;
 
+	qDebug() << "appendChannelPost root_id" << post.root_id << post.hidden;
 	QDate currentDate = QDateTime::currentDateTime().date();
 
 	if (lastPostDate.daysTo (currentDate) >= 1) {
@@ -621,8 +634,8 @@ void ChatArea::appendChannelPost (BackendPost& post)
 	ui->listWidget->adjustSize();
 	ui->listWidget->scrollToBottom();
 
-	if(!isThread)
-		moveOnListTop ();
+	//if(!isThread)
+	//	moveOnListTop ();
 
 	//do not add unread messages count if the Chat Area is on focus
 	if (chatAreaHasFocus) {

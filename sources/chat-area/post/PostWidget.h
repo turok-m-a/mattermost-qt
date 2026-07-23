@@ -67,7 +67,6 @@ public:
 
     BackendPost&						post;
     QString								hoveredLink;
-    bool							has_thread_button;
     QPushButton*						threadButton;
 
 public slots:

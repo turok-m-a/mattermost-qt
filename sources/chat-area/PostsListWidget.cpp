@@ -319,7 +319,7 @@ void PostsListWidget::showContextMenu (const QPoint& pos)
 	QString selectedText = post->getSelectedText ();
 
 	myMenu.addAction ("Reply in thread", [this, post] {
-		if (!post->has_thread_button)
+		if (!post->threadButton)
 			post->addThreadButton();
 
 		post->openThreadWindow();

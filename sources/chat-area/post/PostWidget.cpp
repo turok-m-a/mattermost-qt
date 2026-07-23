@@ -41,7 +41,6 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 ,post (post)
 ,ui(new Ui::PostWidget)
 ,parentChatArea(chatArea)
-,has_thread_button(false)
 ,threadButton(nullptr)
 {
 	ui->setupUi(this);
@@ -114,10 +113,9 @@ PostWidget::PostWidget (Backend& backend, BackendPost &post, QWidget *parent, Ch
 	}
 
 	if (post.has_thread && !parentChatArea->isThread) {
-		QPushButton* openThread = new QPushButton("Open Thread", this);
-		connect (openThread, SIGNAL(clicked()), this, SLOT(openThreadWindow()));
-		has_thread_button = true;
-		ui->verticalLayout->addWidget(openThread);
+		threadButton = new QPushButton("Open Thread", this);
+		connect (threadButton, &QPushButton::clicked, this, &PostWidget::openThreadWindow);
+		ui->verticalLayout->addWidget(threadButton);
 	}
 
 	connect (ui->message, &QLabel::linkHovered, [this] (const QString& link) {
@@ -172,7 +170,6 @@ void PostWidget::addThreadButton ()
 	if (threadButton == nullptr)
 		threadButton = new QPushButton("Open Thread", this);
 	connect (threadButton, SIGNAL(clicked()), this, SLOT(openThreadWindow()));
-	has_thread_button = true;
 	ui->verticalLayout->addWidget(threadButton);
 }
 
